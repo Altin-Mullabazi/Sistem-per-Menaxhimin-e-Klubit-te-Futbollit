@@ -1,0 +1,43 @@
+.players-container {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow);
+  padding: 2rem;
+}
+
+.players-header {
+  margin-bottom: 2rem;
+}
+
+.players-header h1 {
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.header-info {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.header-info p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.header-info strong {
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .players-container {
+    padding: 1rem;
+  }
+
+  .header-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
