@@ -17,7 +17,6 @@ namespace FootballClubAPI.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Player configuration
             modelBuilder.Entity<Player>()
                 .HasKey(p => p.Id);
 
@@ -33,7 +32,7 @@ namespace FootballClubAPI.Data
                 .Property(p => p.Position)
                 .IsRequired();
 
-            // User configuration
+          
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Id);
 
@@ -51,7 +50,6 @@ namespace FootballClubAPI.Data
                 .HasForeignKey(rt => rt.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // RefreshToken configuration
             modelBuilder.Entity<RefreshToken>()
                 .HasKey(rt => rt.Id);
 

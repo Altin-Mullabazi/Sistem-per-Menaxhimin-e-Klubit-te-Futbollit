@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/Auth.css';
 
 export const Login: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading, error, clearError } = useAuth();
@@ -14,7 +14,7 @@ export const Login: React.FC = () => {
     e.preventDefault();
     clearError();
     try {
-      await login(username, password);
+      await login(email, password);
       navigate('/players');
     } catch (err) {
       console.error('Login error:', err);
@@ -31,13 +31,13 @@ export const Login: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="email">Email</label>
             <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
               required
               disabled={isLoading}
             />
@@ -74,7 +74,7 @@ export const Login: React.FC = () => {
           <div className="demo-credentials">
             <p><strong>Demo Credentials:</strong></p>
             <ul>
-              <li>User: admin / Admin@123</li>
+              <li>Email: admin@footballclub.com / Admin@123</li>
             </ul>
           </div>
         </div>

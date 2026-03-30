@@ -8,8 +8,9 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string, role: string) => Promise<void>;
+  logout: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -29,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const handleTokenExpired = () => {
-      logout();
+      void logout();
     };
 
     window.addEventListener('tokenRefreshed', handleTokenRefreshed);
@@ -41,11 +42,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const login = useCallback(async (username: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response: AuthResponse = await authService.login({ username, password });
+      const response: AuthResponse = await authService.login({ email, password });
       if (response.success) {
         setAccessToken(response.accessToken || null);
         setUser(response.user || null);
@@ -59,8 +60,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const logout = useCallback(() => {
-    authService.logout();
+  const register = useCallback(async (username: string, email: string, password: string, role: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response: AuthResponse = await authService.register({ username, email, password, role });
+      if (response.success) {
+        setAccessToken(response.accessToken || null);
+        setUser(response.user || null);
+      } else {
+        setError(response.message);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    await authService.logout();
     setUser(null);
     setAccessToken(null);
     setError(null);
@@ -77,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     error,
     isAuthenticated: !!accessToken && !!user,
     login,
+    register,
     logout,
     clearError,
   };

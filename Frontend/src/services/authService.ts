@@ -1,5 +1,5 @@
 import apiClient, { setAuthTokens, clearAuthTokens } from './apiClient';
-import { LoginRequest, AuthResponse } from '../types';
+import { LoginRequest, RegisterRequest, AuthResponse } from '../types';
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
@@ -11,6 +11,18 @@ export const authService = {
       return response.data;
     } catch (error: any) {
       throw error.response?.data || { success: false, message: 'Login failed' };
+    }
+  },
+
+  register: async (payload: RegisterRequest): Promise<AuthResponse> => {
+    try {
+      const response = await apiClient.post('/auth/register', payload);
+      if (response.data.success && response.data.accessToken && response.data.refreshToken) {
+        setAuthTokens(response.data.accessToken, response.data.refreshToken);
+      }
+      return response.data;
+    } catch (error: any) {
+      throw error.response?.data || { success: false, message: 'Registration failed' };
     }
   },
 
@@ -28,7 +40,13 @@ export const authService = {
     }
   },
 
-  logout: () => {
-    clearAuthTokens();
+  logout: async (): Promise<void> => {
+    try {
+      await apiClient.post('/auth/logout');
+    } catch {
+      // Always clear local auth state, even if backend logout fails.
+    } finally {
+      clearAuthTokens();
+    }
   },
 };

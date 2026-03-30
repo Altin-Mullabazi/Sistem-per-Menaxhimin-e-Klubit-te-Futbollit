@@ -10,6 +10,7 @@ namespace FootballClubAPI.Services
     {
         Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
         Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto);
+        Task<bool> LogoutAsync(string userId);
     }
 
     public class AuthService : IAuthService
@@ -29,15 +30,17 @@ namespace FootballClubAPI.Services
         {
             try
             {
+                var normalizedEmail = loginDto.Email.Trim();
+
                 var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Username == loginDto.Username);
+                    .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
 
                 if (user == null || !_tokenHelper.VerifyPassword(loginDto.Password, user.PasswordHash))
                 {
                     return new AuthResponseDto
                     {
                         Success = false,
-                        Message = "Invalid username or password"
+                        Message = "Invalid email or password"
                     };
                 }
 
@@ -53,7 +56,7 @@ namespace FootballClubAPI.Services
                 var accessToken = _tokenHelper.GenerateAccessToken(user.Id, user.Role);
                 var refreshToken = _tokenHelper.GenerateRefreshToken();
 
-                // Revoke previous refresh tokens (token rotation)
+              
                 var oldTokens = await _context.RefreshTokens
                     .Where(rt => rt.UserId == user.Id && !rt.IsRevoked)
                     .ToListAsync();
@@ -64,7 +67,7 @@ namespace FootballClubAPI.Services
                     oldToken.RevokedAt = DateTime.UtcNow;
                 }
 
-                // Save new refresh token
+                
                 var refreshTokenEntity = new RefreshToken
                 {
                     UserId = user.Id,
@@ -134,15 +137,13 @@ namespace FootballClubAPI.Services
                     };
                 }
 
-                // Revoke old refresh token
+                
                 refreshTokenEntity.IsRevoked = true;
                 refreshTokenEntity.RevokedAt = DateTime.UtcNow;
 
-                // Generate new tokens
                 var newAccessToken = _tokenHelper.GenerateAccessToken(user.Id, user.Role);
                 var newRefreshToken = _tokenHelper.GenerateRefreshToken();
 
-                // Save new refresh token
                 var newRefreshTokenEntity = new RefreshToken
                 {
                     UserId = user.Id,
@@ -179,6 +180,31 @@ namespace FootballClubAPI.Services
                     Success = false,
                     Message = "An error occurred during token refresh"
                 };
+            }
+        }
+
+        public async Task<bool> LogoutAsync(string userId)
+        {
+            try
+            {
+                var userTokens = await _context.RefreshTokens
+                    .Where(rt => rt.UserId == userId)
+                    .ToListAsync();
+
+                if (userTokens.Count == 0)
+                {
+                    return true;
+                }
+
+                _context.RefreshTokens.RemoveRange(userTokens);
+                await _context.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Logout error: {ex.Message}");
+                return false;
             }
         }
 
