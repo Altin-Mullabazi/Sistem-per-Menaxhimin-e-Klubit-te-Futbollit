@@ -4,6 +4,7 @@ using FootballClubAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FootballClubAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260412213331_AddCoreEntities")]
+    partial class AddCoreEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -468,224 +471,6 @@ namespace FootballClubAPI.Migrations
                     b.Navigation("Club");
 
                     b.Navigation("User");
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Clubs");
-                });
-
-            modelBuilder.Entity("FootballClubAPI.Models.Stadium", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Stadiums");
-                });
-
-            modelBuilder.Entity("FootballClubAPI.Models.Season", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Competition")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Seasons");
-                });
-
-            modelBuilder.Entity("FootballClubAPI.Models.Match", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AwayClubId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("AwayScore")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CompetitionType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("HomeClubId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("HomeScore")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("MatchDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("SeasonId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StadiumId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<TimeSpan?>("Time")
-                        .HasColumnType("time");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AwayClubId");
-
-                    b.HasIndex("HomeClubId");
-
-                    b.HasIndex("SeasonId");
-
-                    b.HasIndex("StadiumId");
-
-                    b.ToTable("Matches");
-                });
-
-            modelBuilder.Entity("FootballClubAPI.Models.MatchEvent", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<int>("EventType")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MatchId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Minute")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PlayerId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MatchId");
-
-                    b.HasIndex("PlayerId");
-
-                    b.ToTable("MatchEvents");
-                });
-
-            modelBuilder.Entity("FootballClubAPI.Models.PlayerStats", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Assists")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("GoalsScored")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MatchId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MinutesPlayed")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PlayerId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("Rating")
-                        .HasColumnType("decimal(4,2)");
-
-                    b.Property<int>("RedCards")
-                        .HasColumnType("int");
-
-                    b.Property<int>("YellowCards")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MatchId");
-
-                    b.HasIndex("PlayerId");
-
-                    b.ToTable("PlayerStats");
                 });
 
             modelBuilder.Entity("FootballClubAPI.Models.RefreshToken", b =>
@@ -756,80 +541,6 @@ namespace FootballClubAPI.Migrations
                 });
 
             modelBuilder.Entity("FootballClubAPI.Models.Trophy", b =>
-            modelBuilder.Entity("FootballClubAPI.Models.Match", b =>
-                {
-                    b.HasOne("FootballClubAPI.Models.Club", "AwayClub")
-                        .WithMany("AwayMatches")
-                        .HasForeignKey("AwayClubId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("FootballClubAPI.Models.Club", "HomeClub")
-                        .WithMany("HomeMatches")
-                        .HasForeignKey("HomeClubId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("FootballClubAPI.Models.Season", "Season")
-                        .WithMany("Matches")
-                        .HasForeignKey("SeasonId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FootballClubAPI.Models.Stadium", "Stadium")
-                        .WithMany("Matches")
-                        .HasForeignKey("StadiumId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("AwayClub");
-
-                    b.Navigation("HomeClub");
-
-                    b.Navigation("Season");
-
-                    b.Navigation("Stadium");
-                });
-
-            modelBuilder.Entity("FootballClubAPI.Models.MatchEvent", b =>
-                {
-                    b.HasOne("FootballClubAPI.Models.Match", "Match")
-                        .WithMany("MatchEvents")
-                        .HasForeignKey("MatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FootballClubAPI.Models.Player", "Player")
-                        .WithMany()
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Match");
-
-                    b.Navigation("Player");
-                });
-
-            modelBuilder.Entity("FootballClubAPI.Models.PlayerStats", b =>
-                {
-                    b.HasOne("FootballClubAPI.Models.Match", "Match")
-                        .WithMany("PlayerStats")
-                        .HasForeignKey("MatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FootballClubAPI.Models.Player", "Player")
-                        .WithMany()
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Match");
-
-                    b.Navigation("Player");
-                });
-
-            modelBuilder.Entity("FootballClubAPI.Models.Season", b =>
                 {
                     b.HasOne("FootballClubAPI.Models.User", "User")
                         .WithMany()
@@ -859,26 +570,6 @@ namespace FootballClubAPI.Migrations
             modelBuilder.Entity("FootballClubAPI.Models.Trophy", b =>
                 {
                     b.Navigation("ClubTrophies");
-                    b.Navigation("AwayMatches");
-
-                    b.Navigation("HomeMatches");
-                });
-
-            modelBuilder.Entity("FootballClubAPI.Models.Match", b =>
-                {
-                    b.Navigation("MatchEvents");
-
-                    b.Navigation("PlayerStats");
-                });
-
-            modelBuilder.Entity("FootballClubAPI.Models.Season", b =>
-                {
-                    b.Navigation("Matches");
-                });
-
-            modelBuilder.Entity("FootballClubAPI.Models.Stadium", b =>
-                {
-                    b.Navigation("Matches");
                 });
 
             modelBuilder.Entity("FootballClubAPI.Models.User", b =>
