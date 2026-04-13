@@ -30,6 +30,8 @@ namespace FootballClubAPI.Models
         [ForeignKey("User")]
         public string UserId { get; set; } = string.Empty;
 
+        public int? ClubId { get; set; }
+
         // Navigation properties
         public virtual User? User { get; set; }
         public virtual Club? Club { get; set; }
