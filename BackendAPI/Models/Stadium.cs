@@ -3,19 +3,25 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FootballClubAPI.Models
 {
-    public class Sponsor
+    public class Stadium
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Sponsor name is required")]
+        [Required(ErrorMessage = "Stadium name is required")]
         [StringLength(200)]
         public string Name { get; set; } = string.Empty;
 
-        [StringLength(500)]
-        public string? Logo { get; set; }
+        [Required(ErrorMessage = "City is required")]
+        [StringLength(100)]
+        public string City { get; set; } = string.Empty;
 
-        [StringLength(256)]
-        public string? Website { get; set; }
+        [Required(ErrorMessage = "Capacity is required")]
+        [Range(1000, 150000)]
+        public int Capacity { get; set; }
+
+        [Required(ErrorMessage = "Year built is required")]
+        [Range(1800, 2100)]
+        public int YearBuilt { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -26,6 +32,6 @@ namespace FootballClubAPI.Models
 
         // Navigation properties
         public virtual User? User { get; set; }
-        public virtual ICollection<SponsorClub> SponsorClubs { get; set; } = new List<SponsorClub>();
+        public virtual Club? Club { get; set; }
     }
 }
