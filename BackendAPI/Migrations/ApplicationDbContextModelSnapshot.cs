@@ -30,6 +30,35 @@ namespace FootballClubAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("FoundedYear")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Clubs");
+                });
+
+            modelBuilder.Entity("FootballClubAPI.Models.Player", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<decimal?>("Budget")
                         .HasColumnType("decimal(18, 2)");
 
@@ -253,6 +282,15 @@ namespace FootballClubAPI.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Website")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -308,6 +346,7 @@ namespace FootballClubAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ClubId")
                     b.Property<int>("Capacity")
                         .HasColumnType("int");
 
@@ -322,6 +361,14 @@ namespace FootballClubAPI.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SponsorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -341,6 +388,9 @@ namespace FootballClubAPI.Migrations
 
                     b.HasIndex("ClubId");
 
+                    b.HasIndex("SponsorId");
+
+                    b.ToTable("SponsorClubs");
                     b.HasIndex("UserId");
 
                     b.ToTable("Stadiums");
@@ -428,6 +478,9 @@ namespace FootballClubAPI.Migrations
                     b.HasOne("FootballClubAPI.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -713,6 +766,7 @@ namespace FootballClubAPI.Migrations
                     b.HasOne("FootballClubAPI.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -738,6 +792,9 @@ namespace FootballClubAPI.Migrations
                     b.Navigation("Sponsor");
                 });
 
+            modelBuilder.Entity("FootballClubAPI.Models.Club", b =>
+                {
+                    b.Navigation("SponsorClubs");
             modelBuilder.Entity("FootballClubAPI.Models.Stadium", b =>
                 {
                     b.HasOne("FootballClubAPI.Models.Club", "Club")

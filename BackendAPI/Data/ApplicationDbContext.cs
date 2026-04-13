@@ -13,18 +13,20 @@ namespace FootballClubAPI.Data
         public DbSet<User> Users { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Club> Clubs { get; set; }
+        public DbSet<Sponsor> Sponsors { get; set; }
+        public DbSet<SponsorClub> SponsorClubs { get; set; }
         public DbSet<Stadium> Stadiums { get; set; }
         public DbSet<Sponsor> Sponsors { get; set; }
         public DbSet<Trophy> Trophies { get; set; }
         public DbSet<Season> Seasons { get; set; }
-        public DbSet<SponsorClub> SponsorClubs { get; set; }
+      
         public DbSet<ClubTrophy> ClubTrophies { get; set; }
         public DbSet<Season> Seasons { get; set; }
         public DbSet<Match> Matches { get; set; }
         public DbSet<MatchEvent> MatchEvents { get; set; }
         public DbSet<PlayerStats> PlayerStats { get; set; }
         public DbSet<Club> Clubs { get; set; }
-        public DbSet<Stadium> Stadiums { get; set; }
+      
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -198,11 +200,48 @@ namespace FootballClubAPI.Data
                 .Property(rt => rt.TokenHash)
                 .IsRequired();
 
+            // Club configuration
             modelBuilder.Entity<Club>()
                 .HasKey(c => c.Id);
 
             modelBuilder.Entity<Club>()
                 .Property(c => c.Name)
+                .IsRequired();
+
+            modelBuilder.Entity<Club>()
+                .HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Sponsor configuration
+            modelBuilder.Entity<Sponsor>()
+                .HasKey(s => s.Id);
+
+            modelBuilder.Entity<Sponsor>()
+                .Property(s => s.Name)
+                .IsRequired();
+
+            modelBuilder.Entity<Sponsor>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // SponsorClub configuration (junction table)
+            modelBuilder.Entity<SponsorClub>()
+                .HasKey(sc => sc.Id);
+
+            modelBuilder.Entity<SponsorClub>()
+                .HasOne(sc => sc.Sponsor)
+                .WithMany(s => s.SponsorClubs)
+                .HasForeignKey(sc => sc.SponsorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SponsorClub>()
+                .HasOne(sc => sc.Club)
+                .WithMany(c => c.SponsorClubs)
+                .HasForeignKey(sc => sc.ClubId)
                 .IsRequired()
                 .HasMaxLength(150);
 
