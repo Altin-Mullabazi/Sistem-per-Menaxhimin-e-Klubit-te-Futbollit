@@ -27,5 +27,10 @@ namespace FootballClubAPI.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        public virtual ICollection<Transfer> Transfers { get; set; } = new List<Transfer>();
+        public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
+        public virtual ICollection<Injury> Injuries { get; set; } = new List<Injury>();
+        public virtual ICollection<TrainingAttendance> TrainingAttendances { get; set; } = new List<TrainingAttendance>();
     }
 }
