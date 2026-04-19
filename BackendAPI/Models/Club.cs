@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FootballClubAPI.Models
 {
@@ -6,16 +7,40 @@ namespace FootballClubAPI.Models
     {
         public int Id { get; set; }
 
-        [Required]
-        [StringLength(100)]
+        [Required(ErrorMessage = "Club name is required")]
+        [StringLength(200)]
         public string Name { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "City is required")]
+        [StringLength(100)]
+        public string City { get; set; } = string.Empty;
+
         [StringLength(500)]
-        public string? Description { get; set; }
+        public string? LogoUrl { get; set; }
+
+        [Required(ErrorMessage = "Founded year is required")]
+        [Range(1800, 2100)]
+        public int FoundedYear { get; set; }
+
+        [StringLength(100)]
+        public string? President { get; set; }
+
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal? Budget { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+        [ForeignKey("User")]
+        public string UserId { get; set; } = string.Empty;
+
+        // Navigation properties
+        public virtual User? User { get; set; }
+        public virtual ICollection<Player> Players { get; set; } = new List<Player>();
+        public virtual ICollection<Stadium> Stadiums { get; set; } = new List<Stadium>();
+        public virtual ICollection<SponsorClub> SponsorClubs { get; set; } = new List<SponsorClub>();
+        public virtual ICollection<ClubTrophy> ClubTrophies { get; set; } = new List<ClubTrophy>();
         public virtual ICollection<Transfer> OutgoingTransfers { get; set; } = new List<Transfer>();
         public virtual ICollection<Transfer> IncomingTransfers { get; set; } = new List<Transfer>();
         public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();

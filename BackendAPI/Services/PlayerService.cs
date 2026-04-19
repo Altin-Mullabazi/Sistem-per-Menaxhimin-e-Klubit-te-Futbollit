@@ -44,9 +44,15 @@ namespace FootballClubAPI.Services
             {
                 FirstName = createPlayerDto.FirstName,
                 LastName = createPlayerDto.LastName,
-                Age = createPlayerDto.Age,
+                JerseyNumber = createPlayerDto.JerseyNumber,
                 Position = createPlayerDto.Position,
-                ClubName = createPlayerDto.ClubName,
+                DateOfBirth = createPlayerDto.DateOfBirth,
+                Nationality = createPlayerDto.Nationality,
+                Height = createPlayerDto.Height,
+                Weight = createPlayerDto.Weight,
+                Status = string.IsNullOrEmpty(createPlayerDto.Status) ? null : Enum.Parse<PlayerStatus>(createPlayerDto.Status),
+                MarketValue = createPlayerDto.MarketValue,
+                ClubId = createPlayerDto.ClubId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -65,9 +71,15 @@ namespace FootballClubAPI.Services
 
             player.FirstName = updatePlayerDto.FirstName;
             player.LastName = updatePlayerDto.LastName;
-            player.Age = updatePlayerDto.Age;
+            player.JerseyNumber = updatePlayerDto.JerseyNumber;
             player.Position = updatePlayerDto.Position;
-            player.ClubName = updatePlayerDto.ClubName;
+            player.DateOfBirth = updatePlayerDto.DateOfBirth;
+            player.Nationality = updatePlayerDto.Nationality;
+            player.Height = updatePlayerDto.Height;
+            player.Weight = updatePlayerDto.Weight;
+            player.Status = string.IsNullOrEmpty(updatePlayerDto.Status) ? null : Enum.Parse<PlayerStatus>(updatePlayerDto.Status);
+            player.MarketValue = updatePlayerDto.MarketValue;
+            player.ClubId = updatePlayerDto.ClubId;
             player.UpdatedAt = DateTime.UtcNow;
 
             _context.Players.Update(player);
@@ -95,9 +107,15 @@ namespace FootballClubAPI.Services
                 Id = player.Id,
                 FirstName = player.FirstName,
                 LastName = player.LastName,
-                Age = player.Age,
+                JerseyNumber = player.JerseyNumber,
                 Position = player.Position,
-                ClubName = player.ClubName,
+                DateOfBirth = player.DateOfBirth,
+                Nationality = player.Nationality,
+                Height = player.Height,
+                Weight = player.Weight,
+                Status = player.Status?.ToString(),
+                MarketValue = player.MarketValue,
+                ClubId = player.ClubId,
                 CreatedAt = player.CreatedAt,
                 UpdatedAt = player.UpdatedAt
             };
