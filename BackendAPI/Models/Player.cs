@@ -53,5 +53,9 @@ namespace FootballClubAPI.Models
         // Navigation properties
         public virtual Club? Club { get; set; }
         public virtual User? User { get; set; }
+        public virtual ICollection<Transfer> Transfers { get; set; } = new List<Transfer>();
+        public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
+        public virtual ICollection<Injury> Injuries { get; set; } = new List<Injury>();
+        public virtual ICollection<TrainingAttendance> TrainingAttendances { get; set; } = new List<TrainingAttendance>();
     }
 }

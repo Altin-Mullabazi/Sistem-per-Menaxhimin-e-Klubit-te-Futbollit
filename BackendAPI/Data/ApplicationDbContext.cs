@@ -13,6 +13,11 @@ namespace FootballClubAPI.Data
         public DbSet<User> Users { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Club> Clubs { get; set; }
+        public DbSet<Transfer> Transfers { get; set; }
+        public DbSet<Contract> Contracts { get; set; }
+        public DbSet<Injury> Injuries { get; set; }
+        public DbSet<TrainingSession> TrainingSessions { get; set; }
+        public DbSet<TrainingAttendance> TrainingAttendances { get; set; }
         public DbSet<Sponsor> Sponsors { get; set; }
         public DbSet<SponsorClub> SponsorClubs { get; set; }
         public DbSet<Stadium> Stadiums { get; set; }
@@ -264,6 +269,74 @@ namespace FootballClubAPI.Data
                 .WithMany(match => match.PlayerStats)
                 .HasForeignKey(playerStats => playerStats.MatchId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // ===== TRANSFER RELATIONSHIPS =====
+            modelBuilder.Entity<Transfer>()
+                .HasOne(t => t.Player)
+                .WithMany(p => p.Transfers)
+                .HasForeignKey(t => t.PlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Transfer>()
+                .HasOne(t => t.FromClub)
+                .WithMany(c => c.OutgoingTransfers)
+                .HasForeignKey(t => t.FromClubId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Transfer>()
+                .HasOne(t => t.ToClub)
+                .WithMany(c => c.IncomingTransfers)
+                .HasForeignKey(t => t.ToClubId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ===== CONTRACT RELATIONSHIPS =====
+            modelBuilder.Entity<Contract>()
+                .HasOne(c => c.Player)
+                .WithMany(p => p.Contracts)
+                .HasForeignKey(c => c.PlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Contract>()
+                .HasOne(c => c.Club)
+                .WithMany(cl => cl.Contracts)
+                .HasForeignKey(c => c.ClubId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Contract>()
+                .HasIndex(c => c.PlayerId)
+                .IsUnique()
+                .HasFilter("Status = 1");
+
+            // ===== INJURY RELATIONSHIPS =====
+            modelBuilder.Entity<Injury>()
+                .HasOne(i => i.Player)
+                .WithMany(p => p.Injuries)
+                .HasForeignKey(i => i.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ===== TRAINING SESSION RELATIONSHIPS =====
+            modelBuilder.Entity<TrainingSession>()
+                .HasOne(ts => ts.Club)
+                .WithMany(c => c.TrainingSessions)
+                .HasForeignKey(ts => ts.ClubId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ===== TRAINING ATTENDANCE RELATIONSHIPS =====
+            modelBuilder.Entity<TrainingAttendance>()
+                .HasOne(ta => ta.TrainingSession)
+                .WithMany(ts => ts.Attendances)
+                .HasForeignKey(ta => ta.TrainingSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TrainingAttendance>()
+                .HasOne(ta => ta.Player)
+                .WithMany(p => p.TrainingAttendances)
+                .HasForeignKey(ta => ta.PlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TrainingAttendance>()
+                .HasIndex(ta => new { ta.TrainingSessionId, ta.PlayerId })
+                .IsUnique();
         }
     }
 }
