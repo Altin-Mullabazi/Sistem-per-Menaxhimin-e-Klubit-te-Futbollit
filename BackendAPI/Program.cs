@@ -72,6 +72,7 @@ builder.Services.AddCors(options =>
 
 // Dependency Injection
 builder.Services.AddScoped<IPlayerService, PlayerService>();
+builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<TokenHelper>();
 
