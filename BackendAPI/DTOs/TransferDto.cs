@@ -3,6 +3,9 @@ using FootballClubAPI.Models;
 
 namespace FootballClubAPI.DTOs
 {
+    /// <summary>
+    /// Transfer DTO for list/get responses
+    /// </summary>
     public class TransferDto
     {
         public int Id { get; set; }
@@ -20,33 +23,39 @@ namespace FootballClubAPI.DTOs
         public DateTime UpdatedAt { get; set; }
     }
 
+    /// <summary>
+    /// DTO for creating transfers
+    /// </summary>
     public class CreateTransferDto
     {
-        [Required]
+        [Required(ErrorMessage = "PlayerId is required")]
         public int PlayerId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "FromClubId is required")]
         public int FromClubId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "ToClubId is required")]
         public int ToClubId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "TransferDate is required")]
         public DateTime TransferDate { get; set; }
 
-        [Range(0, double.MaxValue, ErrorMessage = "Transfer fee must be greater than or equal to 0.")]
+        [Range(0, double.MaxValue, ErrorMessage = "Transfer fee must be greater than or equal to 0")]
         public decimal TransferFee { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Transfer type is required")]
         public TransferType Type { get; set; }
     }
 
+    /// <summary>
+    /// DTO for updating transfers (only fee and type can be updated)
+    /// </summary>
     public class UpdateTransferDto
     {
-        [Range(0, double.MaxValue, ErrorMessage = "Transfer fee must be greater than or equal to 0.")]
+        [Range(0, double.MaxValue, ErrorMessage = "Transfer fee must be greater than or equal to 0")]
         public decimal TransferFee { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Transfer type is required")]
         public TransferType Type { get; set; }
     }
 }
