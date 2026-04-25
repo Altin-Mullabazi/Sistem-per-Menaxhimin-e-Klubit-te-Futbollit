@@ -41,5 +41,7 @@ namespace FootballClubAPI.Models
         public virtual ICollection<Stadium> Stadiums { get; set; } = new List<Stadium>();
         public virtual ICollection<SponsorClub> SponsorClubs { get; set; } = new List<SponsorClub>();
         public virtual ICollection<ClubTrophy> ClubTrophies { get; set; } = new List<ClubTrophy>();
+        public virtual ICollection<Match> HomeMatches { get; set; } = new List<Match>();
+        public virtual ICollection<Match> AwayMatches { get; set; } = new List<Match>();
     }
 }

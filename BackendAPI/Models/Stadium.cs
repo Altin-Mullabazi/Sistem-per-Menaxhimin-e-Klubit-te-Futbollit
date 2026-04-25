@@ -33,5 +33,6 @@ namespace FootballClubAPI.Models
         // Navigation properties
         public virtual User? User { get; set; }
         public virtual Club? Club { get; set; }
+        public virtual ICollection<Match> Matches { get; set; } = new List<Match>();
     }
 }

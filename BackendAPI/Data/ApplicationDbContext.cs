@@ -238,8 +238,7 @@ namespace FootballClubAPI.Data
                 .HasOne(sc => sc.Club)
                 .WithMany(c => c.SponsorClubs)
                 .HasForeignKey(sc => sc.ClubId)
-                .IsRequired()
-                .HasMaxLength(150);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Stadium>()
                 .HasKey(s => s.Id);
