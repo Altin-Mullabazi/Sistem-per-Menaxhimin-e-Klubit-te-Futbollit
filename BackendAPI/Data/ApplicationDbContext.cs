@@ -16,16 +16,12 @@ namespace FootballClubAPI.Data
         public DbSet<Sponsor> Sponsors { get; set; }
         public DbSet<SponsorClub> SponsorClubs { get; set; }
         public DbSet<Stadium> Stadiums { get; set; }
-        public DbSet<Sponsor> Sponsors { get; set; }
         public DbSet<Trophy> Trophies { get; set; }
         public DbSet<Season> Seasons { get; set; }
-      
         public DbSet<ClubTrophy> ClubTrophies { get; set; }
-        public DbSet<Season> Seasons { get; set; }
         public DbSet<Match> Matches { get; set; }
         public DbSet<MatchEvent> MatchEvents { get; set; }
         public DbSet<PlayerStats> PlayerStats { get; set; }
-        public DbSet<Club> Clubs { get; set; }
       
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

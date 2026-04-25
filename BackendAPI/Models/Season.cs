@@ -15,11 +15,6 @@ namespace FootballClubAPI.Models
         public DateTime StartDate { get; set; }
 
         [Required(ErrorMessage = "End date is required")]
-        [Required]
-        [StringLength(150)]
-        public string Name { get; set; } = string.Empty;
-
-        public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
         [StringLength(100)]
@@ -34,9 +29,6 @@ namespace FootballClubAPI.Models
 
         // Navigation properties
         public virtual User? User { get; set; }
-        [Required]
-        public string UserId { get; set; } = string.Empty;
-        public User? User { get; set; }
 
         public ICollection<Match> Matches { get; set; } = new HashSet<Match>();
     }

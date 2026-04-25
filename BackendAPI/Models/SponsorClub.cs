@@ -10,18 +10,12 @@ namespace FootballClubAPI.Models
         [Required]
         public int SponsorId { get; set; }
 
-        public Sponsor? Sponsor { get; set; }
-
         [Required]
         public int ClubId { get; set; }
-
-        public Club? Club { get; set; }
 
         public DateTime? StartDate { get; set; }
 
         public DateTime? EndDate { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
         public virtual Sponsor? Sponsor { get; set; }
