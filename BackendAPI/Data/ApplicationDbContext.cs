@@ -13,6 +13,11 @@ namespace FootballClubAPI.Data
         public DbSet<User> Users { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Club> Clubs { get; set; }
+        public DbSet<Transfer> Transfers { get; set; }
+        public DbSet<Contract> Contracts { get; set; }
+        public DbSet<Injury> Injuries { get; set; }
+        public DbSet<TrainingSession> TrainingSessions { get; set; }
+        public DbSet<TrainingAttendance> TrainingAttendances { get; set; }
         public DbSet<Sponsor> Sponsors { get; set; }
         public DbSet<SponsorClub> SponsorClubs { get; set; }
         public DbSet<Stadium> Stadiums { get; set; }
@@ -22,319 +27,317 @@ namespace FootballClubAPI.Data
         public DbSet<Match> Matches { get; set; }
         public DbSet<MatchEvent> MatchEvents { get; set; }
         public DbSet<PlayerStats> PlayerStats { get; set; }
-      
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Player Configuration
             modelBuilder.Entity<Player>()
-                .HasKey(p => p.Id);
+                .HasKey(player => player.Id);
 
             modelBuilder.Entity<Player>()
-                .Property(p => p.FirstName)
+                .Property(player => player.FirstName)
                 .IsRequired();
 
             modelBuilder.Entity<Player>()
-                .Property(p => p.LastName)
+                .Property(player => player.LastName)
                 .IsRequired();
 
             modelBuilder.Entity<Player>()
-                .Property(p => p.Position)
+                .Property(player => player.Position)
                 .IsRequired();
 
             modelBuilder.Entity<Player>()
-                .HasOne(p => p.Club)
-                .WithMany(c => c.Players)
-                .HasForeignKey(p => p.ClubId)
+                .HasOne(player => player.Club)
+                .WithMany(club => club.Players)
+                .HasForeignKey(player => player.ClubId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Player>()
-                .HasOne(p => p.User)
+                .HasOne(player => player.User)
                 .WithMany()
-                .HasForeignKey(p => p.UserId)
+                .HasForeignKey(player => player.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // User Configuration
             modelBuilder.Entity<User>()
-                .HasKey(u => u.Id);
+                .HasKey(user => user.Id);
 
             modelBuilder.Entity<User>()
-                .HasIndex(u => u.Username)
+                .HasIndex(user => user.Username)
                 .IsUnique();
 
             modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
+                .HasIndex(user => user.Email)
                 .IsUnique();
 
             modelBuilder.Entity<User>()
-                .HasMany(u => u.RefreshTokens)
+                .HasMany(user => user.RefreshTokens)
                 .WithOne()
-                .HasForeignKey(rt => rt.UserId)
+                .HasForeignKey(refreshToken => refreshToken.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Club Configuration
             modelBuilder.Entity<Club>()
-                .HasKey(c => c.Id);
+                .HasKey(club => club.Id);
 
             modelBuilder.Entity<Club>()
-                .Property(c => c.Name)
+                .Property(club => club.Name)
                 .IsRequired();
 
             modelBuilder.Entity<Club>()
-                .Property(c => c.City)
+                .Property(club => club.City)
                 .IsRequired();
 
             modelBuilder.Entity<Club>()
-                .HasOne(c => c.User)
+                .HasOne(club => club.User)
                 .WithMany()
-                .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Stadium Configuration
-            modelBuilder.Entity<Stadium>()
-                .HasKey(s => s.Id);
-
-            modelBuilder.Entity<Stadium>()
-                .Property(s => s.Name)
-                .IsRequired();
-
-            modelBuilder.Entity<Stadium>()
-                .HasOne(s => s.User)
-                .WithMany()
-                .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Sponsor Configuration
-            modelBuilder.Entity<Sponsor>()
-                .HasKey(s => s.Id);
-
-            modelBuilder.Entity<Sponsor>()
-                .Property(s => s.Name)
-                .IsRequired();
-
-            modelBuilder.Entity<Sponsor>()
-                .HasOne(s => s.User)
-                .WithMany()
-                .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Trophy Configuration
-            modelBuilder.Entity<Trophy>()
-                .HasKey(t => t.Id);
-
-            modelBuilder.Entity<Trophy>()
-                .Property(t => t.Name)
-                .IsRequired();
-
-            modelBuilder.Entity<Trophy>()
-                .HasOne(t => t.User)
-                .WithMany()
-                .HasForeignKey(t => t.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Season Configuration
-            modelBuilder.Entity<Season>()
-                .HasKey(s => s.Id);
-
-            modelBuilder.Entity<Season>()
-                .Property(s => s.Name)
-                .IsRequired();
-
-            modelBuilder.Entity<Season>()
-                .Property(s => s.StartDate)
-                .IsRequired();
-
-            modelBuilder.Entity<Season>()
-                .Property(s => s.EndDate)
-                .IsRequired();
-
-            modelBuilder.Entity<Season>()
-                .HasOne(s => s.User)
-                .WithMany()
-                .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // SponsorClub Configuration (Junction Table)
-            modelBuilder.Entity<SponsorClub>()
-                .HasKey(sc => new { sc.SponsorId, sc.ClubId });
-
-            modelBuilder.Entity<SponsorClub>()
-                .HasOne(sc => sc.Sponsor)
-                .WithMany(s => s.SponsorClubs)
-                .HasForeignKey(sc => sc.SponsorId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<SponsorClub>()
-                .HasOne(sc => sc.Club)
-                .WithMany(c => c.SponsorClubs)
-                .HasForeignKey(sc => sc.ClubId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // ClubTrophy Configuration (Junction Table)
-            modelBuilder.Entity<ClubTrophy>()
-                .HasKey(ct => new { ct.TrophyId, ct.ClubId });
-
-            modelBuilder.Entity<ClubTrophy>()
-                .HasOne(ct => ct.Trophy)
-                .WithMany(t => t.ClubTrophies)
-                .HasForeignKey(ct => ct.TrophyId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<ClubTrophy>()
-                .HasOne(ct => ct.Club)
-                .WithMany(c => c.ClubTrophies)
-                .HasForeignKey(ct => ct.ClubId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // RefreshToken Configuration
-            modelBuilder.Entity<RefreshToken>()
-                .HasKey(rt => rt.Id);
-
-            modelBuilder.Entity<RefreshToken>()
-                .Property(rt => rt.TokenHash)
-                .IsRequired();
-
-            // Club configuration
-            modelBuilder.Entity<Club>()
-                .HasKey(c => c.Id);
+                .HasForeignKey(club => club.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Club>()
-                .Property(c => c.Name)
-                .IsRequired();
-
-            modelBuilder.Entity<Club>()
-                .HasOne(c => c.User)
-                .WithMany()
-                .HasForeignKey(c => c.UserId)
+                .HasMany(club => club.Players)
+                .WithOne(player => player.Club)
+                .HasForeignKey(player => player.ClubId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // Sponsor configuration
-            modelBuilder.Entity<Sponsor>()
-                .HasKey(s => s.Id);
+            modelBuilder.Entity<Club>()
+                .HasMany(club => club.Stadiums)
+                .WithOne(stadium => stadium.Club)
+                .HasForeignKey(stadium => stadium.ClubId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Club>()
+                .HasMany(club => club.SponsorClubs)
+                .WithOne(sponsorClub => sponsorClub.Club)
+                .HasForeignKey(sponsorClub => sponsorClub.ClubId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Club>()
+                .HasMany(club => club.ClubTrophies)
+                .WithOne(clubTrophy => clubTrophy.Club)
+                .HasForeignKey(clubTrophy => clubTrophy.ClubId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Stadium>()
+                .HasKey(stadium => stadium.Id);
+
+            modelBuilder.Entity<Stadium>()
+                .Property(stadium => stadium.Name)
+                .IsRequired();
+
+            modelBuilder.Entity<Stadium>()
+                .HasOne(stadium => stadium.User)
+                .WithMany()
+                .HasForeignKey(stadium => stadium.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Sponsor>()
-                .Property(s => s.Name)
+                .HasKey(sponsor => sponsor.Id);
+
+            modelBuilder.Entity<Sponsor>()
+                .Property(sponsor => sponsor.Name)
                 .IsRequired();
 
             modelBuilder.Entity<Sponsor>()
-                .HasOne(s => s.User)
+                .HasOne(sponsor => sponsor.User)
                 .WithMany()
-                .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            // SponsorClub configuration (junction table)
-            modelBuilder.Entity<SponsorClub>()
-                .HasKey(sc => sc.Id);
-
-            modelBuilder.Entity<SponsorClub>()
-                .HasOne(sc => sc.Sponsor)
-                .WithMany(s => s.SponsorClubs)
-                .HasForeignKey(sc => sc.SponsorId)
+                .HasForeignKey(sponsor => sponsor.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<SponsorClub>()
-                .HasOne(sc => sc.Club)
-                .WithMany(c => c.SponsorClubs)
-                .HasForeignKey(sc => sc.ClubId)
+                .HasKey(sponsorClub => sponsorClub.Id);
+
+            modelBuilder.Entity<SponsorClub>()
+                .HasOne(sponsorClub => sponsorClub.Sponsor)
+                .WithMany(sponsor => sponsor.SponsorClubs)
+                .HasForeignKey(sponsorClub => sponsorClub.SponsorId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Stadium>()
-                .HasKey(s => s.Id);
+            modelBuilder.Entity<SponsorClub>()
+                .HasOne(sponsorClub => sponsorClub.Club)
+                .WithMany(club => club.SponsorClubs)
+                .HasForeignKey(sponsorClub => sponsorClub.ClubId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Stadium>()
-                .Property(s => s.Name)
-                .IsRequired()
-                .HasMaxLength(150);
+            modelBuilder.Entity<Trophy>()
+                .HasKey(trophy => trophy.Id);
 
-            modelBuilder.Entity<Season>()
-                .HasKey(s => s.Id);
+            modelBuilder.Entity<Trophy>()
+                .Property(trophy => trophy.Name)
+                .IsRequired();
 
-            modelBuilder.Entity<Season>()
-                .Property(s => s.Name)
-                .IsRequired()
-                .HasMaxLength(150);
-
-            modelBuilder.Entity<Season>()
-                .Property(s => s.Competition)
-                .HasMaxLength(100);
-
-            modelBuilder.Entity<Season>()
-                .HasOne(s => s.User)
+            modelBuilder.Entity<Trophy>()
+                .HasOne(trophy => trophy.User)
                 .WithMany()
-                .HasForeignKey(s => s.UserId)
+                .HasForeignKey(trophy => trophy.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Season>()
+                .HasKey(season => season.Id);
+
+            modelBuilder.Entity<Season>()
+                .Property(season => season.Name)
+                .IsRequired();
+
+            modelBuilder.Entity<Season>()
+                .Property(season => season.StartDate)
+                .IsRequired();
+
+            modelBuilder.Entity<Season>()
+                .Property(season => season.EndDate)
+                .IsRequired();
+
+            modelBuilder.Entity<Season>()
+                .HasOne(season => season.User)
+                .WithMany()
+                .HasForeignKey(season => season.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Season>()
+                .HasMany(season => season.Matches)
+                .WithOne(match => match.Season)
+                .HasForeignKey(match => match.SeasonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ClubTrophy>()
+                .HasKey(clubTrophy => new { clubTrophy.TrophyId, clubTrophy.ClubId });
+
+            modelBuilder.Entity<ClubTrophy>()
+                .HasOne(clubTrophy => clubTrophy.Trophy)
+                .WithMany(trophy => trophy.ClubTrophies)
+                .HasForeignKey(clubTrophy => clubTrophy.TrophyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ClubTrophy>()
+                .HasOne(clubTrophy => clubTrophy.Club)
+                .WithMany(club => club.ClubTrophies)
+                .HasForeignKey(clubTrophy => clubTrophy.ClubId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Match>()
-                .HasKey(m => m.Id);
+                .HasKey(match => match.Id);
 
             modelBuilder.Entity<Match>()
-                .Property(m => m.Status)
-                .IsRequired()
-                .HasMaxLength(50);
-
-            modelBuilder.Entity<Match>()
-                .Property(m => m.CompetitionType)
-                .HasMaxLength(100);
-
-            modelBuilder.Entity<Match>()
-                .HasOne(m => m.HomeClub)
-                .WithMany(c => c.HomeMatches)
-                .HasForeignKey(m => m.HomeClubId)
+                .HasOne(match => match.HomeClub)
+                .WithMany()
+                .HasForeignKey(match => match.HomeClubId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Match>()
-                .HasOne(m => m.AwayClub)
-                .WithMany(c => c.AwayMatches)
-                .HasForeignKey(m => m.AwayClubId)
+                .HasOne(match => match.AwayClub)
+                .WithMany()
+                .HasForeignKey(match => match.AwayClubId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Match>()
-                .HasOne(m => m.Stadium)
-                .WithMany(s => s.Matches)
-                .HasForeignKey(m => m.StadiumId)
+                .HasOne(match => match.Stadium)
+                .WithMany()
+                .HasForeignKey(match => match.StadiumId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Match>()
-                .HasOne(m => m.Season)
-                .WithMany(s => s.Matches)
-                .HasForeignKey(m => m.SeasonId)
+                .HasOne(match => match.Season)
+                .WithMany(season => season.Matches)
+                .HasForeignKey(match => match.SeasonId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<MatchEvent>()
-                .HasKey(me => me.Id);
+                .HasKey(matchEvent => matchEvent.Id);
 
             modelBuilder.Entity<MatchEvent>()
-                .HasOne(me => me.Match)
-                .WithMany(m => m.MatchEvents)
-                .HasForeignKey(me => me.MatchId)
+                .HasOne(matchEvent => matchEvent.Match)
+                .WithMany(match => match.MatchEvents)
+                .HasForeignKey(matchEvent => matchEvent.MatchId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<MatchEvent>()
-                .HasOne(me => me.Player)
+                .HasOne(matchEvent => matchEvent.Player)
                 .WithMany()
-                .HasForeignKey(me => me.PlayerId)
+                .HasForeignKey(matchEvent => matchEvent.PlayerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PlayerStats>()
-                .HasKey(ps => ps.Id);
+                .HasKey(playerStats => playerStats.Id);
 
             modelBuilder.Entity<PlayerStats>()
-                .Property(ps => ps.Rating)
-                .HasColumnType("decimal(4,2)");
-
-            modelBuilder.Entity<PlayerStats>()
-                .HasOne(ps => ps.Player)
+                .HasOne(playerStats => playerStats.Player)
                 .WithMany()
-                .HasForeignKey(ps => ps.PlayerId)
+                .HasForeignKey(playerStats => playerStats.PlayerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PlayerStats>()
-                .HasOne(ps => ps.Match)
-                .WithMany(m => m.PlayerStats)
-                .HasForeignKey(ps => ps.MatchId)
+                .HasOne(playerStats => playerStats.Match)
+                .WithMany(match => match.PlayerStats)
+                .HasForeignKey(playerStats => playerStats.MatchId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // ===== TRANSFER RELATIONSHIPS =====
+            modelBuilder.Entity<Transfer>()
+                .HasOne(t => t.Player)
+                .WithMany(p => p.Transfers)
+                .HasForeignKey(t => t.PlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Transfer>()
+                .HasOne(t => t.FromClub)
+                .WithMany(c => c.OutgoingTransfers)
+                .HasForeignKey(t => t.FromClubId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Transfer>()
+                .HasOne(t => t.ToClub)
+                .WithMany(c => c.IncomingTransfers)
+                .HasForeignKey(t => t.ToClubId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ===== CONTRACT RELATIONSHIPS =====
+            modelBuilder.Entity<Contract>()
+                .HasOne(c => c.Player)
+                .WithMany(p => p.Contracts)
+                .HasForeignKey(c => c.PlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Contract>()
+                .HasOne(c => c.Club)
+                .WithMany(cl => cl.Contracts)
+                .HasForeignKey(c => c.ClubId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Contract>()
+                .HasIndex(c => c.PlayerId)
+                .IsUnique()
+                .HasFilter("Status = 1");
+
+            // ===== INJURY RELATIONSHIPS =====
+            modelBuilder.Entity<Injury>()
+                .HasOne(i => i.Player)
+                .WithMany(p => p.Injuries)
+                .HasForeignKey(i => i.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ===== TRAINING SESSION RELATIONSHIPS =====
+            modelBuilder.Entity<TrainingSession>()
+                .HasOne(ts => ts.Club)
+                .WithMany(c => c.TrainingSessions)
+                .HasForeignKey(ts => ts.ClubId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ===== TRAINING ATTENDANCE RELATIONSHIPS =====
+            modelBuilder.Entity<TrainingAttendance>()
+                .HasOne(ta => ta.TrainingSession)
+                .WithMany(ts => ts.Attendances)
+                .HasForeignKey(ta => ta.TrainingSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TrainingAttendance>()
+                .HasOne(ta => ta.Player)
+                .WithMany(p => p.TrainingAttendances)
+                .HasForeignKey(ta => ta.PlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TrainingAttendance>()
+                .HasIndex(ta => new { ta.TrainingSessionId, ta.PlayerId })
+                .IsUnique();
         }
     }
 }

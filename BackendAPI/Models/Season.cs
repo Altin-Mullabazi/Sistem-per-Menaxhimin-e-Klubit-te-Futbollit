@@ -27,9 +27,7 @@ namespace FootballClubAPI.Models
         [ForeignKey("User")]
         public string UserId { get; set; } = string.Empty;
 
-        // Navigation properties
         public virtual User? User { get; set; }
-
         public ICollection<Match> Matches { get; set; } = new HashSet<Match>();
     }
 }
