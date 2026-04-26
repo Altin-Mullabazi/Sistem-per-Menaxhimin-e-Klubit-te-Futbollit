@@ -28,6 +28,7 @@ namespace FootballClubAPI.Data
         public DbSet<MatchEvent> MatchEvents { get; set; }
         public DbSet<PlayerStats> PlayerStats { get; set; }
 
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
