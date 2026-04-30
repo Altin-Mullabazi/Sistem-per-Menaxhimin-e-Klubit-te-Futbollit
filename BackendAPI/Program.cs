@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Swashbuckle.AspNetCore.Filters;
+using FluentValidation;
 using FootballClubAPI.Data;
 using FootballClubAPI.Services;
 using FootballClubAPI.Helpers;
+using FootballClubAPI.DTOs;
+using FootballClubAPI.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,6 +81,9 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISponsorService, SponsorService>();
 builder.Services.AddScoped<IClubService, ClubService>();
 builder.Services.AddScoped<TokenHelper>();
+
+// FluentValidation
+builder.Services.AddScoped<IValidator<RegisterRequest>, RegisterRequestValidator>();
 
 // Swagger/OpenAPI configuration
 builder.Services.AddEndpointsApiExplorer();
