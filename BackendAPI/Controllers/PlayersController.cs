@@ -65,6 +65,7 @@ namespace FootballClubAPI.Controllers
         /// Create a new player
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = "Admin,Manager")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreatePlayer([FromBody] CreatePlayerDto createPlayerDto)
@@ -88,6 +89,7 @@ namespace FootballClubAPI.Controllers
         /// Update player
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,Manager")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdatePlayer(int id, [FromBody] UpdatePlayerDto updatePlayerDto)
@@ -114,6 +116,7 @@ namespace FootballClubAPI.Controllers
         /// Delete player
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeletePlayer(int id)

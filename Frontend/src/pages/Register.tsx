@@ -5,18 +5,18 @@ import '../styles/Auth.css';
 
 export const Register: React.FC = () => {
   const [formData, setFormData] = useState({
-    username: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'Manager',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [validationError, setValidationError] = useState('');
   const { register, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -31,13 +31,19 @@ export const Register: React.FC = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setValidationError('Password must be at least 6 characters');
+    if (formData.password.length < 8) {
+      setValidationError('Password must be at least 8 characters');
       return;
     }
 
     try {
-      await register(formData.username, formData.email, formData.password, formData.role);
+      await register(
+        formData.firstName,
+        formData.lastName,
+        formData.email,
+        formData.password,
+        formData.confirmPassword
+      );
       navigate('/players');
     } catch (err) {
       console.error('Registration error:', err);
@@ -55,14 +61,28 @@ export const Register: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="firstName">First Name</label>
             <input
-              id="username"
+              id="firstName"
               type="text"
-              name="username"
-              value={formData.username}
+              name="firstName"
+              value={formData.firstName}
               onChange={handleChange}
-              placeholder="Choose a username"
+              placeholder="Enter your first name"
+              required
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="lastName">Last Name</label>
+            <input
+              id="lastName"
+              type="text"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              placeholder="Enter your last name"
               required
               disabled={isLoading}
             />
@@ -100,7 +120,7 @@ export const Register: React.FC = () => {
                 className="toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
+                {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
           </div>
@@ -117,21 +137,6 @@ export const Register: React.FC = () => {
               required
               disabled={isLoading}
             />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="role">Role</label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              disabled={isLoading}
-            >
-              <option value="Manager">Manager</option>
-              <option value="Coach">Coach</option>
-              <option value="Admin">Admin</option>
-            </select>
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={isLoading}>

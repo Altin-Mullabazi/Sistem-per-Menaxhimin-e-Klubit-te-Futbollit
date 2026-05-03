@@ -14,7 +14,7 @@ namespace FootballClubAPI.Helpers
     {
         private readonly IConfiguration _configuration;
         private const int BcryptWorkFactor = 12;
-        private const int AccessTokenExpirationMinutes = 60; // 1 hour
+        private const int DefaultAccessTokenExpirationMinutes = 15;
 
         public TokenHelper(IConfiguration configuration)
         {
@@ -29,7 +29,16 @@ namespace FootballClubAPI.Helpers
         /// <returns>A signed JWT access token</returns>
         public string GenerateAccessToken(string userId, string role)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecretKey"] ?? ""));
+            var secretKey = _configuration["JwtSettings:SecretKey"];
+            if (string.IsNullOrWhiteSpace(secretKey) || Encoding.UTF8.GetByteCount(secretKey) < 32)
+            {
+                throw new InvalidOperationException("JWT secret key is not configured correctly.");
+            }
+
+            var expirationMinutes = int.TryParse(_configuration["JwtSettings:ExpirationMinutes"], out var configuredExpirationMinutes)
+                ? configuredExpirationMinutes
+                : DefaultAccessTokenExpirationMinutes;
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
@@ -40,7 +49,7 @@ namespace FootballClubAPI.Helpers
                     new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId),
                     new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, role)
                 },
-                expires: DateTime.UtcNow.AddMinutes(AccessTokenExpirationMinutes),
+                expires: DateTime.UtcNow.AddMinutes(expirationMinutes),
                 signingCredentials: credentials
             );
 
@@ -83,8 +92,10 @@ namespace FootballClubAPI.Helpers
         /// <returns>True if token matches hash, false otherwise</returns>
         public bool ValidateRefreshToken(string refreshToken, string storedHash)
         {
-            var hash = HashRefreshToken(refreshToken);
-            return hash == storedHash;
+            var hashBytes = Convert.FromBase64String(HashRefreshToken(refreshToken));
+            var storedHashBytes = Convert.FromBase64String(storedHash);
+            return hashBytes.Length == storedHashBytes.Length &&
+                CryptographicOperations.FixedTimeEquals(hashBytes, storedHashBytes);
         }
 
         /// <summary>

@@ -1,6 +1,4 @@
 using FootballClubAPI.Models;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace FootballClubAPI.Data
 {
@@ -21,7 +19,10 @@ namespace FootballClubAPI.Data
                     Username = "admin",
                     Email = "admin@footballclub.com",
                     PasswordHash = HashPassword("Admin@123"),
-                    Role = "User",
+                    FirstName = "System",
+                    LastName = "Admin",
+                    Role = "Admin",
+                    EmailVerified = true,
                     CreatedAt = DateTime.UtcNow,
                     IsActive = true
                 };
@@ -119,9 +120,7 @@ namespace FootballClubAPI.Data
 
         private static string HashPassword(string password)
         {
-            using var sha256 = SHA256.Create();
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
+            return BCrypt.Net.BCrypt.HashPassword(password, 12);
         }
     }
 }

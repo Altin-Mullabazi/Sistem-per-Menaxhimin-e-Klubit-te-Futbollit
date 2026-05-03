@@ -10,6 +10,7 @@ namespace FootballClubAPI.Models
         public string UserId { get; set; } = string.Empty;
 
         [Required]
+        [StringLength(88)]
         public string TokenHash { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

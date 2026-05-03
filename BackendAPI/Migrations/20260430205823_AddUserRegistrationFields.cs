@@ -167,72 +167,6 @@ namespace FootballClubAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Matches",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    HomeClubId = table.Column<int>(type: "int", nullable: false),
-                    AwayClubId = table.Column<int>(type: "int", nullable: false),
-                    MatchDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Time = table.Column<TimeSpan>(type: "time", nullable: true),
-                    HomeScore = table.Column<int>(type: "int", nullable: true),
-                    AwayScore = table.Column<int>(type: "int", nullable: true),
-                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CompetitionType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    StadiumId = table.Column<int>(type: "int", nullable: false),
-                    SeasonId = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ClubId = table.Column<int>(type: "int", nullable: true),
-                    ClubId1 = table.Column<int>(type: "int", nullable: true),
-                    StadiumId1 = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Matches", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Matches_Clubs_AwayClubId",
-                        column: x => x.AwayClubId,
-                        principalTable: "Clubs",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Matches_Clubs_ClubId",
-                        column: x => x.ClubId,
-                        principalTable: "Clubs",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Matches_Clubs_ClubId1",
-                        column: x => x.ClubId1,
-                        principalTable: "Clubs",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Matches_Clubs_HomeClubId",
-                        column: x => x.HomeClubId,
-                        principalTable: "Clubs",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Matches_Seasons_SeasonId",
-                        column: x => x.SeasonId,
-                        principalTable: "Seasons",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Matches_Stadiums_StadiumId",
-                        column: x => x.StadiumId,
-                        principalTable: "Stadiums",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Matches_Stadiums_StadiumId1",
-                        column: x => x.StadiumId1,
-                        principalTable: "Stadiums",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "TrainingSessions",
                 columns: table => new
                 {
@@ -297,69 +231,6 @@ namespace FootballClubAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MatchEvents",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    MatchId = table.Column<int>(type: "int", nullable: false),
-                    PlayerId = table.Column<int>(type: "int", nullable: false),
-                    EventType = table.Column<int>(type: "int", nullable: false),
-                    Minute = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MatchEvents", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MatchEvents_Matches_MatchId",
-                        column: x => x.MatchId,
-                        principalTable: "Matches",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MatchEvents_Players_PlayerId",
-                        column: x => x.PlayerId,
-                        principalTable: "Players",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PlayerStats",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PlayerId = table.Column<int>(type: "int", nullable: false),
-                    MatchId = table.Column<int>(type: "int", nullable: false),
-                    MinutesPlayed = table.Column<int>(type: "int", nullable: false),
-                    GoalsScored = table.Column<int>(type: "int", nullable: false),
-                    Assists = table.Column<int>(type: "int", nullable: false),
-                    YellowCards = table.Column<int>(type: "int", nullable: false),
-                    RedCards = table.Column<int>(type: "int", nullable: false),
-                    Rating = table.Column<decimal>(type: "decimal(4,2)", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PlayerStats", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PlayerStats_Matches_MatchId",
-                        column: x => x.MatchId,
-                        principalTable: "Matches",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PlayerStats_Players_PlayerId",
-                        column: x => x.PlayerId,
-                        principalTable: "Players",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "TrainingAttendances",
                 columns: table => new
                 {
@@ -408,61 +279,6 @@ namespace FootballClubAPI.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Injuries_PlayerId",
                 table: "Injuries",
-                column: "PlayerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Matches_AwayClubId",
-                table: "Matches",
-                column: "AwayClubId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Matches_ClubId",
-                table: "Matches",
-                column: "ClubId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Matches_ClubId1",
-                table: "Matches",
-                column: "ClubId1");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Matches_HomeClubId",
-                table: "Matches",
-                column: "HomeClubId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Matches_SeasonId",
-                table: "Matches",
-                column: "SeasonId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Matches_StadiumId",
-                table: "Matches",
-                column: "StadiumId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Matches_StadiumId1",
-                table: "Matches",
-                column: "StadiumId1");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MatchEvents_MatchId",
-                table: "MatchEvents",
-                column: "MatchId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MatchEvents_PlayerId",
-                table: "MatchEvents",
-                column: "PlayerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PlayerStats_MatchId",
-                table: "PlayerStats",
-                column: "MatchId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PlayerStats_PlayerId",
-                table: "PlayerStats",
                 column: "PlayerId");
 
             migrationBuilder.CreateIndex(
@@ -530,19 +346,10 @@ namespace FootballClubAPI.Migrations
                 name: "Injuries");
 
             migrationBuilder.DropTable(
-                name: "MatchEvents");
-
-            migrationBuilder.DropTable(
-                name: "PlayerStats");
-
-            migrationBuilder.DropTable(
                 name: "TrainingAttendances");
 
             migrationBuilder.DropTable(
                 name: "Transfers");
-
-            migrationBuilder.DropTable(
-                name: "Matches");
 
             migrationBuilder.DropTable(
                 name: "TrainingSessions");

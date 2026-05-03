@@ -8,8 +8,10 @@ using FootballClubAPI.Helpers;
 using FootballClubAPI.Models;
 using FootballClubAPI.Services;
 using FootballClubAPI.Validators;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace FootballClubAPI.Tests.Controllers

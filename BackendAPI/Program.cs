@@ -9,6 +9,7 @@ using FootballClubAPI.Services;
 using FootballClubAPI.Helpers;
 using FootballClubAPI.DTOs;
 using FootballClubAPI.Validators;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,12 +18,22 @@ builder.Services.AddControllers();
 
 // Database configuration
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured.");
+}
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FootballClubAPI")));
 
 // JWT Authentication configuration
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"] ?? "";
+var secretKey = jwtSettings["SecretKey"];
+if (string.IsNullOrWhiteSpace(secretKey) ||
+    secretKey == "your-super-secret-key-change-this-in-production-256-bits-minimum" ||
+    Encoding.UTF8.GetByteCount(secretKey) < 32)
+{
+    throw new InvalidOperationException("JwtSettings:SecretKey must be configured with a non-default value of at least 32 bytes.");
+}
 
 builder.Services.AddAuthentication(options =>
 {
@@ -73,6 +84,21 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("auth", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+});
+
 // Dependency Injection
 builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<ITransferService, TransferService>();
@@ -115,6 +141,7 @@ var app = builder.Build();
 
 // Apply CORS
 app.UseCors("AllowReactApp");
+app.UseRateLimiter();
 
 // Database migration on startup
 using (var scope = app.Services.CreateScope())
@@ -128,22 +155,25 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError($"Database migration error: {ex.Message}");
+        logger.LogError(ex, "Database migration failed");
+        throw;
     }
 }
 
 // Configure the HTTP request pipeline
-app.UseSwagger();
-app.UseSwaggerUI(options =>
+if (app.Environment.IsDevelopment())
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Football Club API V1");
-    options.RoutePrefix = string.Empty;
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Football Club API V1");
+        options.RoutePrefix = string.Empty;
+    });
+}
 
-// Only enable HTTPS redirection when an HTTPS port is configured.
-var httpsPort = builder.Configuration["ASPNETCORE_HTTPS_PORT"] ?? builder.Configuration["HTTPS_PORT"];
-if (!string.IsNullOrWhiteSpace(httpsPort))
+if (!app.Environment.IsDevelopment())
 {
+    app.UseHsts();
     app.UseHttpsRedirection();
 }
 

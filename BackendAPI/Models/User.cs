@@ -28,10 +28,12 @@ namespace FootballClubAPI.Models
         public string LastName { get; set; } = string.Empty;
 
         [Required]
+        [StringLength(50)]
         public string Role { get; set; } = "Fan"; // Admin, Staff, Fan
 
         public bool EmailVerified { get; set; } = false;
 
+        [StringLength(255)]
         public string? EmailVerificationToken { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

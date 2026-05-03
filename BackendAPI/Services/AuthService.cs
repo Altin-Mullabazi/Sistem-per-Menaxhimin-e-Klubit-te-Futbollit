@@ -3,6 +3,7 @@ using FootballClubAPI.DTOs;
 using FootballClubAPI.Helpers;
 using FootballClubAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace FootballClubAPI.Services
 {
@@ -31,7 +32,7 @@ namespace FootballClubAPI.Services
         {
             try
             {
-                var normalizedEmail = loginDto.Email.Trim();
+                var normalizedEmail = loginDto.Email.Trim().ToLowerInvariant();
 
                 var user = await _context.Users
                     .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
@@ -98,7 +99,7 @@ namespace FootballClubAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Login error: {ex.Message}");
+                _logger.LogError(ex, "Login error");
                 return new AuthResponseDto
                 {
                     Success = false,
@@ -175,7 +176,7 @@ namespace FootballClubAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Token refresh error: {ex.Message}");
+                _logger.LogError(ex, "Token refresh error");
                 return new AuthResponseDto
                 {
                     Success = false,
@@ -204,7 +205,7 @@ namespace FootballClubAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Logout error: {ex.Message}");
+                _logger.LogError(ex, "Logout error");
                 return false;
             }
         }
@@ -218,6 +219,8 @@ namespace FootballClubAPI.Services
         /// <returns>Registration response with user data and tokens if successful, or errors if registration fails</returns>
         public async Task<RegisterResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
         {
+            IDbContextTransaction? transaction = null;
+
             try
             {
                 // Normalize email
@@ -229,7 +232,7 @@ namespace FootballClubAPI.Services
 
                 if (existingUser != null)
                 {
-                    _logger.LogWarning($"Registration attempt with duplicate email: {normalizedEmail}");
+                    _logger.LogWarning("Registration attempt with duplicate email: {Email}", normalizedEmail);
                     return new RegisterResponse
                     {
                         Success = false,
@@ -255,11 +258,6 @@ namespace FootballClubAPI.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
-                _context.Users.Add(newUser);
-                await _context.SaveChangesAsync(cancellationToken);
-
-                _logger.LogInformation($"User registered successfully: {normalizedEmail}");
-
                 // Generate JWT tokens
                 var accessToken = _tokenHelper.GenerateAccessToken(newUser.Id, newUser.Role);
                 var refreshToken = _tokenHelper.GenerateRefreshToken();
@@ -274,8 +272,20 @@ namespace FootballClubAPI.Services
                     IsRevoked = false
                 };
 
+                if (_context.Database.IsRelational())
+                {
+                    transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+                }
+
+                _context.Users.Add(newUser);
                 _context.RefreshTokens.Add(refreshTokenEntity);
                 await _context.SaveChangesAsync(cancellationToken);
+                if (transaction != null)
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                }
+
+                _logger.LogInformation("User registered successfully: {Email}", normalizedEmail);
 
                 // Build response
                 var response = new RegisterResponse
@@ -301,14 +311,40 @@ namespace FootballClubAPI.Services
 
                 return response;
             }
+            catch (DbUpdateException ex)
+            {
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                }
+
+                _logger.LogWarning(ex, "Registration failed due to database constraint violation");
+                return new RegisterResponse
+                {
+                    Success = false,
+                    Message = "Email already registered. Please use a different email or try login."
+                };
+            }
             catch (Exception ex)
             {
-                _logger.LogError($"Registration error: {ex.Message}");
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                }
+
+                _logger.LogError(ex, "Registration error");
                 return new RegisterResponse
                 {
                     Success = false,
                     Message = "An error occurred during registration. Please try again later."
                 };
+            }
+            finally
+            {
+                if (transaction != null)
+                {
+                    await transaction.DisposeAsync();
+                }
             }
         }
 

@@ -6,6 +6,7 @@ using FootballClubAPI.Helpers;
 using FootballClubAPI.Models;
 using FootballClubAPI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace FootballClubAPI.Tests.Services
