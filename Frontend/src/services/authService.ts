@@ -1,5 +1,5 @@
 import apiClient, { setAuthTokens, clearAuthTokens } from './apiClient';
-import { LoginRequest, RegisterRequest, AuthResponse } from '../types';
+import { LoginRequest, RegisterRequest, AuthResponse, RegisterResponse } from '../types';
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
@@ -16,11 +16,29 @@ export const authService = {
 
   register: async (payload: RegisterRequest): Promise<AuthResponse> => {
     try {
-      const response = await apiClient.post('/auth/register', payload);
-      if (response.data.success && response.data.accessToken && response.data.refreshToken) {
-        setAuthTokens(response.data.accessToken, response.data.refreshToken);
+      const response = await apiClient.post<RegisterResponse>('/auth/register', payload);
+      const registerResponse = response.data;
+      const tokens = registerResponse.data?.tokens;
+
+      if (registerResponse.success && tokens?.accessToken && tokens.refreshToken) {
+        setAuthTokens(tokens.accessToken, tokens.refreshToken);
+        return {
+          success: true,
+          message: registerResponse.message,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          user: {
+            id: registerResponse.data!.userId,
+            username: registerResponse.data!.email,
+            email: registerResponse.data!.email,
+          },
+        };
       }
-      return response.data;
+
+      return {
+        success: false,
+        message: registerResponse.errors?.[0]?.message || registerResponse.message,
+      };
     } catch (error: any) {
       throw error.response?.data || { success: false, message: 'Registration failed' };
     }

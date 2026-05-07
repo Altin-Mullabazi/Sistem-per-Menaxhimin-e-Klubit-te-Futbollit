@@ -3,6 +3,7 @@ using FootballClubAPI.DTOs;
 using FootballClubAPI.Helpers;
 using FootballClubAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace FootballClubAPI.Services
 {
@@ -11,6 +12,7 @@ namespace FootballClubAPI.Services
         Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
         Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto);
         Task<bool> LogoutAsync(string userId);
+        Task<RegisterResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
     }
 
     public class AuthService : IAuthService
@@ -30,7 +32,7 @@ namespace FootballClubAPI.Services
         {
             try
             {
-                var normalizedEmail = loginDto.Email.Trim();
+                var normalizedEmail = loginDto.Email.Trim().ToLowerInvariant();
 
                 var user = await _context.Users
                     .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
@@ -97,7 +99,7 @@ namespace FootballClubAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Login error: {ex.Message}");
+                _logger.LogError(ex, "Login error");
                 return new AuthResponseDto
                 {
                     Success = false,
@@ -174,7 +176,7 @@ namespace FootballClubAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Token refresh error: {ex.Message}");
+                _logger.LogError(ex, "Token refresh error");
                 return new AuthResponseDto
                 {
                     Success = false,
@@ -203,8 +205,146 @@ namespace FootballClubAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Logout error: {ex.Message}");
+                _logger.LogError(ex, "Logout error");
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Registers a new user account with the provided credentials and information.
+        /// Password is hashed using BCrypt before storage. JWT tokens are issued immediately after successful registration.
+        /// </summary>
+        /// <param name="request">The registration request containing user data</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Registration response with user data and tokens if successful, or errors if registration fails</returns>
+        public async Task<RegisterResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
+        {
+            IDbContextTransaction? transaction = null;
+
+            try
+            {
+                // Normalize email
+                var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+
+                // Check if email already exists
+                var existingUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email == normalizedEmail, cancellationToken);
+
+                if (existingUser != null)
+                {
+                    _logger.LogWarning("Registration attempt with duplicate email: {Email}", normalizedEmail);
+                    return new RegisterResponse
+                    {
+                        Success = false,
+                        Message = "Email already registered. Please use a different email or try login."
+                    };
+                }
+
+                // Hash password using BCrypt
+                var passwordHash = _tokenHelper.HashPassword(request.Password);
+
+                // Create new user
+                var newUser = new User
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Email = normalizedEmail,
+                    Username = normalizedEmail, // Use email as username initially
+                    PasswordHash = passwordHash,
+                    FirstName = request.FirstName.Trim(),
+                    LastName = request.LastName.Trim(),
+                    Role = "Fan", // Default role for new registrations
+                    EmailVerified = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                // Generate JWT tokens
+                var accessToken = _tokenHelper.GenerateAccessToken(newUser.Id, newUser.Role);
+                var refreshToken = _tokenHelper.GenerateRefreshToken();
+
+                // Store refresh token in database
+                var refreshTokenEntity = new RefreshToken
+                {
+                    UserId = newUser.Id,
+                    TokenHash = _tokenHelper.HashRefreshToken(refreshToken),
+                    CreatedAt = DateTime.UtcNow,
+                    ExpiresAt = DateTime.UtcNow.AddDays(7),
+                    IsRevoked = false
+                };
+
+                if (_context.Database.IsRelational())
+                {
+                    transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+                }
+
+                _context.Users.Add(newUser);
+                _context.RefreshTokens.Add(refreshTokenEntity);
+                await _context.SaveChangesAsync(cancellationToken);
+                if (transaction != null)
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                }
+
+                _logger.LogInformation("User registered successfully: {Email}", normalizedEmail);
+
+                // Build response
+                var response = new RegisterResponse
+                {
+                    Success = true,
+                    Message = "User registered successfully. Please check your email to verify your account.",
+                    Data = new RegisterResponseData
+                    {
+                        UserId = newUser.Id,
+                        Email = newUser.Email,
+                        FirstName = newUser.FirstName,
+                        LastName = newUser.LastName,
+                        FullName = newUser.FullName,
+                        CreatedAt = newUser.CreatedAt,
+                        Tokens = new TokenData
+                        {
+                            AccessToken = accessToken,
+                            RefreshToken = refreshToken,
+                            ExpiresIn = 3600 // 1 hour in seconds
+                        }
+                    }
+                };
+
+                return response;
+            }
+            catch (DbUpdateException ex)
+            {
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                }
+
+                _logger.LogWarning(ex, "Registration failed due to database constraint violation");
+                return new RegisterResponse
+                {
+                    Success = false,
+                    Message = "Email already registered. Please use a different email or try login."
+                };
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                }
+
+                _logger.LogError(ex, "Registration error");
+                return new RegisterResponse
+                {
+                    Success = false,
+                    Message = "An error occurred during registration. Please try again later."
+                };
+            }
+            finally
+            {
+                if (transaction != null)
+                {
+                    await transaction.DisposeAsync();
+                }
             }
         }
 

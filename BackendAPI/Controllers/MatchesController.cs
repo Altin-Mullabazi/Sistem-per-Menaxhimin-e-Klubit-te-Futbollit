@@ -72,6 +72,11 @@ namespace FootballClubAPI.Controllers
         {
             try
             {
+                if (page < 1 || pageSize < 1 || pageSize > 100)
+                {
+                    return BadRequest(new { success = false, message = "Invalid pagination: page >= 1, pageSize 1-100" });
+                }
+
                 var (matches, totalCount) = await _matchService.GetMatchesAsync(page, pageSize, clubId, seasonId, status);
                 return Ok(new
                 {

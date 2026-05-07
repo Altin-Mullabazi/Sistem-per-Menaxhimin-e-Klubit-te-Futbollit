@@ -1,6 +1,4 @@
 using FootballClubAPI.Models;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace FootballClubAPI.Data
 {
@@ -21,7 +19,10 @@ namespace FootballClubAPI.Data
                     Username = "admin",
                     Email = "admin@footballclub.com",
                     PasswordHash = HashPassword("Admin@123"),
-                    Role = "User",
+                    FirstName = "System",
+                    LastName = "Admin",
+                    Role = "Admin",
+                    EmailVerified = true,
                     CreatedAt = DateTime.UtcNow,
                     IsActive = true
                 };
@@ -39,9 +40,14 @@ namespace FootballClubAPI.Data
                     {
                         FirstName = "Cristiano",
                         LastName = "Ronaldo",
-                        Age = 38,
+                        DateOfBirth = new DateTime(1985, 2, 5),
+                        Nationality = "Portuguese",
+                        JerseyNumber = 7,
                         Position = "Forward",
-                        ClubName = "Al Nassr",
+                        Height = 1.87m,
+                        Weight = 84m,
+                        Status = PlayerStatus.Active,
+                        MarketValue = 10000000m,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     },
@@ -49,9 +55,14 @@ namespace FootballClubAPI.Data
                     {
                         FirstName = "Lionel",
                         LastName = "Messi",
-                        Age = 36,
+                        DateOfBirth = new DateTime(1987, 6, 24),
+                        Nationality = "Argentine",
+                        JerseyNumber = 10,
                         Position = "Forward",
-                        ClubName = "Inter Miami",
+                        Height = 1.70m,
+                        Weight = 72m,
+                        Status = PlayerStatus.Active,
+                        MarketValue = 15000000m,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     },
@@ -59,9 +70,14 @@ namespace FootballClubAPI.Data
                     {
                         FirstName = "Kylian",
                         LastName = "Mbappé",
-                        Age = 25,
+                        DateOfBirth = new DateTime(1998, 12, 20),
+                        Nationality = "French",
+                        JerseyNumber = 9,
                         Position = "Forward",
-                        ClubName = "Real Madrid",
+                        Height = 1.78m,
+                        Weight = 73m,
+                        Status = PlayerStatus.Active,
+                        MarketValue = 180000000m,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     },
@@ -69,9 +85,14 @@ namespace FootballClubAPI.Data
                     {
                         FirstName = "Vinicius",
                         LastName = "Junior",
-                        Age = 24,
+                        DateOfBirth = new DateTime(2000, 7, 12),
+                        Nationality = "Brazilian",
+                        JerseyNumber = 11,
                         Position = "Left Winger",
-                        ClubName = "Real Madrid",
+                        Height = 1.80m,
+                        Weight = 73m,
+                        Status = PlayerStatus.Active,
+                        MarketValue = 120000000m,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     },
@@ -79,9 +100,14 @@ namespace FootballClubAPI.Data
                     {
                         FirstName = "Jude",
                         LastName = "Bellingham",
-                        Age = 21,
+                        DateOfBirth = new DateTime(2003, 6, 17),
+                        Nationality = "English",
+                        JerseyNumber = 5,
                         Position = "Midfielder",
-                        ClubName = "Real Madrid",
+                        Height = 1.86m,
+                        Weight = 75m,
+                        Status = PlayerStatus.Active,
+                        MarketValue = 100000000m,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     }
@@ -94,9 +120,7 @@ namespace FootballClubAPI.Data
 
         private static string HashPassword(string password)
         {
-            using var sha256 = SHA256.Create();
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
+            return BCrypt.Net.BCrypt.HashPassword(password, 12);
         }
     }
 }
