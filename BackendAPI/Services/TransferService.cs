@@ -43,6 +43,7 @@ namespace FootballClubAPI.Services
                 .Include(t => t.ToClub)
                 .AsQueryable();
 
+
             if (playerId.HasValue)
             {
                 query = query.Where(t => t.PlayerId == playerId.Value);
