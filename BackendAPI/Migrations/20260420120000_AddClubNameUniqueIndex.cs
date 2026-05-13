@@ -1,4 +1,3 @@
-﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,18 +5,24 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FootballClubAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class AddSponsorsAndClubsEntities : Migration
+    public partial class AddClubNameUniqueIndex : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Legacy migration kept for history; schema creation consolidated in a later migration.
+            migrationBuilder.CreateIndex(
+                name: "IX_Clubs_Name",
+                table: "Clubs",
+                column: "Name",
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // No-op rollback to keep migration history consistent.
+            migrationBuilder.DropIndex(
+                name: "IX_Clubs_Name",
+                table: "Clubs");
         }
     }
 }

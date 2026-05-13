@@ -72,9 +72,15 @@ builder.Services.AddCors(options =>
 
 // Dependency Injection
 builder.Services.AddScoped<IPlayerService, PlayerService>();
+builder.Services.AddScoped<ITransferService, TransferService>();
+builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISponsorService, SponsorService>();
+<<<<<<< HEAD
 builder.Services.AddScoped<ISeasonService, SeasonService>();
+=======
+builder.Services.AddScoped<IClubService, ClubService>();
+>>>>>>> 26e4a8041e6c280df256fe16226347f8870939dc
 builder.Services.AddScoped<TokenHelper>();
 
 // Swagger/OpenAPI configuration
