@@ -140,7 +140,8 @@ namespace FootballClubAPI.Data
 
             modelBuilder.Entity<Season>()
                 .Property(s => s.Name)
-                .IsRequired();
+                .IsRequired()
+                .HasMaxLength(100);
 
             modelBuilder.Entity<Season>()
                 .Property(s => s.StartDate)
@@ -151,10 +152,35 @@ namespace FootballClubAPI.Data
                 .IsRequired();
 
             modelBuilder.Entity<Season>()
-                .HasOne(s => s.User)
-                .WithMany()
-                .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .Property(s => s.Description)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<Season>()
+                .Property(s => s.CreatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
+
+            modelBuilder.Entity<Season>()
+                .Property(s => s.UpdatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
+
+            modelBuilder.Entity<Season>()
+                .HasIndex(s => s.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<Season>()
+                .HasIndex(s => s.StartDate);
+
+            modelBuilder.Entity<Season>()
+                .HasIndex(s => s.EndDate);
+
+            modelBuilder.Entity<Season>()
+                .HasMany(s => s.Matches)
+                .WithOne(m => m.Season)
+                .HasForeignKey(m => m.SeasonId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Season>()
+                .ToTable(tb => tb.HasCheckConstraint("CK_Seasons_StartBeforeEnd", "[StartDate] < [EndDate]"));
 
             // SponsorClub Configuration (Junction Table)
             modelBuilder.Entity<SponsorClub>()
@@ -247,24 +273,6 @@ namespace FootballClubAPI.Data
                 .Property(s => s.Name)
                 .IsRequired()
                 .HasMaxLength(150);
-
-            modelBuilder.Entity<Season>()
-                .HasKey(s => s.Id);
-
-            modelBuilder.Entity<Season>()
-                .Property(s => s.Name)
-                .IsRequired()
-                .HasMaxLength(150);
-
-            modelBuilder.Entity<Season>()
-                .Property(s => s.Competition)
-                .HasMaxLength(100);
-
-            modelBuilder.Entity<Season>()
-                .HasOne(s => s.User)
-                .WithMany()
-                .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Match>()
                 .HasKey(m => m.Id);
