@@ -72,10 +72,29 @@ namespace FootballClubAPI.Data
                 .IsUnique();
 
             modelBuilder.Entity<User>()
+                .Property(user => user.Role)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<User>()
+                .Property(user => user.EmailVerificationToken)
+                .HasMaxLength(255);
+
+            modelBuilder.Entity<User>()
                 .HasMany(user => user.RefreshTokens)
                 .WithOne()
                 .HasForeignKey(refreshToken => refreshToken.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RefreshToken>()
+                .Property(refreshToken => refreshToken.TokenHash)
+                .HasMaxLength(88);
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(refreshToken => refreshToken.TokenHash)
+                .IsUnique();
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(refreshToken => new { refreshToken.UserId, refreshToken.IsRevoked, refreshToken.ExpiresAt });
 
             modelBuilder.Entity<Club>()
                 .HasKey(club => club.Id);
@@ -361,19 +380,19 @@ namespace FootballClubAPI.Data
 
             modelBuilder.Entity<Match>()
                 .HasOne(match => match.HomeClub)
-                .WithMany()
+                .WithMany(club => club.HomeMatches)
                 .HasForeignKey(match => match.HomeClubId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Match>()
                 .HasOne(match => match.AwayClub)
-                .WithMany()
+                .WithMany(club => club.AwayMatches)
                 .HasForeignKey(match => match.AwayClubId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Match>()
                 .HasOne(match => match.Stadium)
-                .WithMany()
+                .WithMany(stadium => stadium.Matches)
                 .HasForeignKey(match => match.StadiumId)
                 .OnDelete(DeleteBehavior.Restrict);
 

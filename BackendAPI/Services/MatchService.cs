@@ -242,7 +242,7 @@ namespace FootballClubAPI.Services
                 CompetitionType = match.CompetitionType,
                 StadiumId = match.StadiumId,
                 StadiumName = match.Stadium?.Name ?? string.Empty,
-                StadiumLocation = match.Stadium?.Location,
+                StadiumLocation = match.Stadium?.City,
                 SeasonId = match.SeasonId,
                 SeasonName = match.Season?.Name ?? string.Empty,
                 Events = match.MatchEvents?.Select(me => new MatchEventDto

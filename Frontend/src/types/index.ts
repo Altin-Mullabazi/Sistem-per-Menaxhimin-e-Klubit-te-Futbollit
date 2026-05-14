@@ -39,16 +39,39 @@ export interface AuthResponse {
   user?: User;
 }
 
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    userId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    fullName: string;
+    createdAt: string;
+    tokens?: {
+      accessToken: string;
+      refreshToken: string;
+      expiresIn: number;
+    };
+  };
+  errors?: Array<{
+    field: string;
+    message: string;
+  }>;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
 }
 
 export interface RegisterRequest {
-  username: string;
   email: string;
   password: string;
-  role: string;
+  confirmPassword: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface RefreshTokenRequest {

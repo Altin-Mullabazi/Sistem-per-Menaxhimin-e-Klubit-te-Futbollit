@@ -23,12 +23,6 @@ namespace FootballClubAPI.DTOs
         public List<ClubDto> Clubs { get; set; } = new List<ClubDto>();
     }
 
-    public class ClubDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
-
     public class CreateSponsorDto
     {
         [Required(ErrorMessage = "Sponsor name is required")]
