@@ -106,8 +106,11 @@ builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<IMatchEventService, MatchEventService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISponsorService, SponsorService>();
+builder.Services.AddScoped<ISeasonService, SeasonService>();
 builder.Services.AddScoped<IClubService, ClubService>();
+
 builder.Services.AddScoped<IContractService, ContractService>();
+
 builder.Services.AddScoped<TokenHelper>();
 
 // FluentValidation
