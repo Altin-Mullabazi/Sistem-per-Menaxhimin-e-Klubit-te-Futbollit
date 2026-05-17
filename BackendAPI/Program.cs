@@ -74,6 +74,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IClubService, ClubService>();
+builder.Services.AddScoped<IStadiumService, StadiumService>();
 builder.Services.AddScoped<TokenHelper>();
 
 // Swagger/OpenAPI configuration
