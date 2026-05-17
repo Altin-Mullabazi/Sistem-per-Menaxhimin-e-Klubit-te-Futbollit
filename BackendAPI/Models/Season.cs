@@ -23,13 +23,6 @@ namespace FootballClubAPI.Models
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-<<<<<<< HEAD
-=======
-        [ForeignKey("User")]
-        public string UserId { get; set; } = string.Empty;
-
-        public virtual User? User { get; set; }
->>>>>>> 26e4a8041e6c280df256fe16226347f8870939dc
         public ICollection<Match> Matches { get; set; } = new HashSet<Match>();
     }
 }

@@ -10,6 +10,8 @@ using FootballClubAPI.Helpers;
 using FootballClubAPI.DTOs;
 using FootballClubAPI.Validators;
 using System.Threading.RateLimiting;
+using FootballClubAPI.Models;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,18 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FootballClubAPI")));
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.Password.RequiredLength = 8;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireDigit = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
 
 // JWT Authentication configuration
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -152,10 +166,12 @@ app.UseRateLimiter();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     try
     {
         dbContext.Database.Migrate();
-        DatabaseSeeder.SeedData(dbContext);
+        await DatabaseSeeder.SeedDataAsync(dbContext, userManager, roleManager);
     }
     catch (Exception ex)
     {
