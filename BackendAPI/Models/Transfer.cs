@@ -15,8 +15,8 @@ namespace FootballClubAPI.Models
         public DateTime TransferDate { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")]
-        [Range(typeof(decimal), "0.01", "999999999.99", 
-            ErrorMessage = "Transfer fee must be greater than 0.")]
+        [Range(typeof(decimal), "0.00", "999999999.99", 
+            ErrorMessage = "Transfer fee must be greater than or equal to 0.")]
         public decimal TransferFee { get; set; }
 
         [Required]

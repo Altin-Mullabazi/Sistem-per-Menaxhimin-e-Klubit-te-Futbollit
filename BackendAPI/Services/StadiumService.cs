@@ -198,7 +198,7 @@ namespace FootballClubAPI.Services
                     City = c.City,
                     FoundedYear = c.FoundedYear
                 }).ToList(),
-                Matches = matches.Select(m => new MatchDto
+                Matches = matches.Select(m => new StadiumMatchDto
                 {
                     Id = m.Id,
                     HomeClubId = m.HomeClubId,

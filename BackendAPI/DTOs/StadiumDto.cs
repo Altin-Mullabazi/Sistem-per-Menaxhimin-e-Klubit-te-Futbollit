@@ -13,7 +13,7 @@ namespace FootballClubAPI.DTOs
         public DateTime UpdatedAt { get; set; }
     }
 
-    public class MatchDto
+    public class StadiumMatchDto
     {
         public int Id { get; set; }
         public int HomeClubId { get; set; }
@@ -36,7 +36,7 @@ namespace FootballClubAPI.DTOs
         public int Capacity { get; set; }
         public int YearBuilt { get; set; }
         public List<ClubDto> Clubs { get; set; } = new();
-        public List<MatchDto> Matches { get; set; } = new();
+        public List<StadiumMatchDto> Matches { get; set; } = new();
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

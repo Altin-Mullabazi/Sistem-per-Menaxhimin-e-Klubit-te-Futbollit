@@ -16,6 +16,10 @@ namespace FootballClubAPI.Models
         public decimal Salary { get; set; }
 
         [Required]
+        [StringLength(50)]
+        public string Position { get; set; } = string.Empty;
+
+        [Required]
         public DateTime StartDate { get; set; }
 
         [Required]
@@ -35,7 +39,15 @@ namespace FootballClubAPI.Models
         // ✅ Set explicitly in service (not default)
         public DateTime UpdatedAt { get; set; }
 
+        // Computed property for IsActive
+        [NotMapped]
+        public bool IsActive => Status == ContractStatus.Active;
+
+        [ForeignKey("CreatedByUser")]
+        public string? CreatedById { get; set; }
+
         public Player Player { get; set; } = null!;
         public Club Club { get; set; } = null!;
+        public ApplicationUser? CreatedByUser { get; set; }
     }
 }

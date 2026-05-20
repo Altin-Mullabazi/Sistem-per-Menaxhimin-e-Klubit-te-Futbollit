@@ -2,7 +2,9 @@ using FootballClubAPI.Data;
 using FootballClubAPI.DTOs;
 using FootballClubAPI.Helpers;
 using FootballClubAPI.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace FootballClubAPI.Services
 {
@@ -11,17 +13,24 @@ namespace FootballClubAPI.Services
         Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
         Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto refreshTokenDto);
         Task<bool> LogoutAsync(string userId);
+        Task<RegisterResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
     }
 
     public class AuthService : IAuthService
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly TokenHelper _tokenHelper;
         private readonly ILogger<AuthService> _logger;
 
-        public AuthService(ApplicationDbContext context, TokenHelper tokenHelper, ILogger<AuthService> logger)
+        public AuthService(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            TokenHelper tokenHelper,
+            ILogger<AuthService> logger)
         {
             _context = context;
+            _userManager = userManager;
             _tokenHelper = tokenHelper;
             _logger = logger;
         }
@@ -30,12 +39,11 @@ namespace FootballClubAPI.Services
         {
             try
             {
-                var normalizedEmail = loginDto.Email.Trim();
+                var normalizedEmail = loginDto.Email.Trim().ToLowerInvariant();
 
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+                var user = await _userManager.FindByEmailAsync(normalizedEmail);
 
-                if (user == null || !_tokenHelper.VerifyPassword(loginDto.Password, user.PasswordHash))
+                if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
                 {
                     return new AuthResponseDto
                     {
@@ -53,7 +61,10 @@ namespace FootballClubAPI.Services
                     };
                 }
 
-                var accessToken = _tokenHelper.GenerateAccessToken(user.Id, user.Role);
+                var roles = await _userManager.GetRolesAsync(user);
+                var primaryRole = roles.FirstOrDefault() ?? "Fan";
+
+                var accessToken = _tokenHelper.GenerateAccessToken(user.Id, primaryRole);
                 var refreshToken = _tokenHelper.GenerateRefreshToken();
 
               
@@ -89,15 +100,15 @@ namespace FootballClubAPI.Services
                     User = new UserDto
                     {
                         Id = user.Id,
-                        Username = user.Username,
-                        Email = user.Email,
-                        Role = user.Role
+                        Username = user.UserName ?? user.Email ?? string.Empty,
+                        Email = user.Email ?? string.Empty,
+                        Role = primaryRole
                     }
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Login error: {ex.Message}");
+                _logger.LogError(ex, "Login error");
                 return new AuthResponseDto
                 {
                     Success = false,
@@ -137,11 +148,14 @@ namespace FootballClubAPI.Services
                     };
                 }
 
+                var roles = await _userManager.GetRolesAsync(user);
+                var primaryRole = roles.FirstOrDefault() ?? "Fan";
+
                 
                 refreshTokenEntity.IsRevoked = true;
                 refreshTokenEntity.RevokedAt = DateTime.UtcNow;
 
-                var newAccessToken = _tokenHelper.GenerateAccessToken(user.Id, user.Role);
+                var newAccessToken = _tokenHelper.GenerateAccessToken(user.Id, primaryRole);
                 var newRefreshToken = _tokenHelper.GenerateRefreshToken();
 
                 var newRefreshTokenEntity = new RefreshToken
@@ -166,15 +180,15 @@ namespace FootballClubAPI.Services
                     User = new UserDto
                     {
                         Id = user.Id,
-                        Username = user.Username,
-                        Email = user.Email,
-                        Role = user.Role
+                        Username = user.UserName ?? user.Email ?? string.Empty,
+                        Email = user.Email ?? string.Empty,
+                        Role = primaryRole
                     }
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Token refresh error: {ex.Message}");
+                _logger.LogError(ex, "Token refresh error");
                 return new AuthResponseDto
                 {
                     Success = false,
@@ -203,8 +217,158 @@ namespace FootballClubAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Logout error: {ex.Message}");
+                _logger.LogError(ex, "Logout error");
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Registers a new user account with the provided credentials and information.
+        /// Password is hashed using BCrypt before storage. JWT tokens are issued immediately after successful registration.
+        /// </summary>
+        /// <param name="request">The registration request containing user data</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Registration response with user data and tokens if successful, or errors if registration fails</returns>
+        public async Task<RegisterResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
+        {
+            IDbContextTransaction? transaction = null;
+
+            try
+            {
+                // Normalize email
+                var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+
+                // Check if email already exists
+                var existingUser = await _userManager.FindByEmailAsync(normalizedEmail);
+
+                if (existingUser != null)
+                {
+                    _logger.LogWarning("Registration attempt with duplicate email: {Email}", normalizedEmail);
+                    return new RegisterResponse
+                    {
+                        Success = false,
+                        Message = "Email already registered. Please use a different email or try login."
+                    };
+                }
+
+                // Create new user
+                var fullName = $"{request.FirstName.Trim()} {request.LastName.Trim()}";
+                var newUser = new ApplicationUser
+                {
+                    Email = normalizedEmail,
+                    UserName = normalizedEmail,
+                    FullName = fullName,
+                    EmailConfirmed = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                var createResult = await _userManager.CreateAsync(newUser, request.Password);
+                if (!createResult.Succeeded)
+                {
+                    var errors = string.Join("; ", createResult.Errors.Select(error => error.Description));
+                    _logger.LogWarning("Identity registration failed for {Email}: {Errors}", normalizedEmail, errors);
+                    return new RegisterResponse
+                    {
+                        Success = false,
+                        Message = errors
+                    };
+                }
+
+                var roleResult = await _userManager.AddToRoleAsync(newUser, "Fan");
+                if (!roleResult.Succeeded)
+                {
+                    var roleErrors = string.Join("; ", roleResult.Errors.Select(error => error.Description));
+                    _logger.LogWarning("Failed to assign default role to {Email}: {Errors}", normalizedEmail, roleErrors);
+                }
+
+                // Generate JWT tokens
+                var accessToken = _tokenHelper.GenerateAccessToken(newUser.Id, "Fan");
+                var refreshToken = _tokenHelper.GenerateRefreshToken();
+
+                // Store refresh token in database
+                var refreshTokenEntity = new RefreshToken
+                {
+                    UserId = newUser.Id,
+                    TokenHash = _tokenHelper.HashRefreshToken(refreshToken),
+                    CreatedAt = DateTime.UtcNow,
+                    ExpiresAt = DateTime.UtcNow.AddDays(7),
+                    IsRevoked = false
+                };
+
+                if (_context.Database.IsRelational())
+                {
+                    transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+                }
+
+                _context.RefreshTokens.Add(refreshTokenEntity);
+                await _context.SaveChangesAsync(cancellationToken);
+                if (transaction != null)
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                }
+
+                _logger.LogInformation("User registered successfully: {Email}", normalizedEmail);
+
+                // Build response
+                var response = new RegisterResponse
+                {
+                    Success = true,
+                    Message = "User registered successfully. Please check your email to verify your account.",
+                    Data = new RegisterResponseData
+                    {
+                        UserId = newUser.Id,
+                        Email = newUser.Email,
+                        FirstName = request.FirstName.Trim(),
+                        LastName = request.LastName.Trim(),
+                        FullName = newUser.FullName,
+                        CreatedAt = newUser.CreatedAt,
+                        Tokens = new TokenData
+                        {
+                            AccessToken = accessToken,
+                            RefreshToken = refreshToken,
+                            ExpiresIn = 3600 // 1 hour in seconds
+                        }
+                    }
+                };
+
+                return response;
+            }
+            catch (DbUpdateException ex)
+            {
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                }
+
+                _logger.LogWarning(ex, "Registration failed due to database constraint violation");
+                return new RegisterResponse
+                {
+                    Success = false,
+                    Message = "Email already registered. Please use a different email or try login."
+                };
+            }
+            catch (Exception ex)
+            {
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                }
+
+                _logger.LogError(ex, "Registration error");
+                return new RegisterResponse
+                {
+                    Success = false,
+                    Message = "An error occurred during registration. Please try again later."
+                };
+            }
+            finally
+            {
+                if (transaction != null)
+                {
+                    await transaction.DisposeAsync();
+                }
             }
         }
 
