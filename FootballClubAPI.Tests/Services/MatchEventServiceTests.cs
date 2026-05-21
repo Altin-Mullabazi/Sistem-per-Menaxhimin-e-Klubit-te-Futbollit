@@ -32,7 +32,7 @@ namespace FootballClubAPI.Tests.Services
             var club1 = new Club { Id = 1, Name = "Team A" };
             var club2 = new Club { Id = 2, Name = "Team B" };
 
-            var stadium = new Stadium { Id = 1, Name = "Stadium 1", Location = "City A" };
+            var stadium = new Stadium { Id = 1, Name = "Stadium 1", City = "City A", Capacity = 20000, YearBuilt = 1990, UserId = "test-user" };
             
             var season = new Season 
             { 
@@ -61,9 +61,11 @@ namespace FootballClubAPI.Tests.Services
                 Id = 1,
                 FirstName = "John",
                 LastName = "Doe",
-                Age = 25,
+                JerseyNumber = 7,
                 Position = "Forward",
-                ClubName = "Team A"
+                DateOfBirth = DateTime.UtcNow.AddYears(-25),
+                Nationality = "Country",
+                ClubId = 1
             };
 
             var player2 = new Player
@@ -71,9 +73,11 @@ namespace FootballClubAPI.Tests.Services
                 Id = 2,
                 FirstName = "Jane",
                 LastName = "Smith",
-                Age = 23,
+                JerseyNumber = 10,
                 Position = "Midfielder",
-                ClubName = "Team A"
+                DateOfBirth = DateTime.UtcNow.AddYears(-23),
+                Nationality = "Country",
+                ClubId = 1
             };
 
             var matchEvent1 = new MatchEvent
