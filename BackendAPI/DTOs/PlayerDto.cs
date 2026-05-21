@@ -124,21 +124,12 @@ namespace FootballClubAPI.DTOs
         public decimal Salary { get; set; }
     }
 
-    public class TransferDto
-    {
-        public int Id { get; set; }
-        public int PlayerId { get; set; }
-        public int FromClubId { get; set; }
-        public int ToClubId { get; set; }
-        public DateTime TransferDate { get; set; }
-        public decimal TransferFee { get; set; }
-    }
-
     public class PlayerStatsDto
     {
         public int Id { get; set; }
         public int PlayerId { get; set; }
         public int MatchId { get; set; }
+        public string? PlayerName { get; set; }
         public int MinutesPlayed { get; set; }
         public int GoalsScored { get; set; }
         public int Assists { get; set; }
