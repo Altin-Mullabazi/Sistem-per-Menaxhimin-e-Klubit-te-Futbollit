@@ -50,6 +50,20 @@ namespace FootballClubAPI.DTOs
         public string? Description { get; set; }
     }
 
+    public class PlayerStatsDto
+    {
+        public int Id { get; set; }
+        public int PlayerId { get; set; }
+        public int MatchId { get; set; }
+        public string PlayerName { get; set; } = string.Empty;
+        public int MinutesPlayed { get; set; }
+        public int GoalsScored { get; set; }
+        public int Assists { get; set; }
+        public int YellowCards { get; set; }
+        public int RedCards { get; set; }
+        public decimal? Rating { get; set; }
+    }
+
     public class CreateMatchDto
     {
         public int HomeClubId { get; set; }
