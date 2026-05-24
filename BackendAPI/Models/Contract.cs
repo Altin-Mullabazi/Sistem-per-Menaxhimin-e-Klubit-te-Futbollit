@@ -43,7 +43,11 @@ namespace FootballClubAPI.Models
         [NotMapped]
         public bool IsActive => Status == ContractStatus.Active;
 
+        [ForeignKey("CreatedByUser")]
+        public string? CreatedById { get; set; }
+
         public Player Player { get; set; } = null!;
         public Club Club { get; set; } = null!;
+        public ApplicationUser? CreatedByUser { get; set; }
     }
 }

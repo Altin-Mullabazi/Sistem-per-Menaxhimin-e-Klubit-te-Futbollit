@@ -1,33 +1,46 @@
 using FootballClubAPI.Models;
-using System.Security.Cryptography;
-using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace FootballClubAPI.Data
 {
     public static class DatabaseSeeder
     {
-        public static void SeedData(ApplicationDbContext context)
+        public static async Task SeedDataAsync(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager)
         {
-            // Check if data already exists
-            if (context.Users.Any() && context.Players.Any())
-                return;
-
-            // Seed one demo user
-            if (!context.Users.Any())
+            var roles = new[] { "Admin", "Manager", "Fan" };
+            foreach (var roleName in roles)
             {
-                var user = new User
+                if (!await roleManager.RoleExistsAsync(roleName))
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    Username = "admin",
-                    Email = "admin@footballclub.com",
-                    PasswordHash = HashPassword("Admin@123"),
-                    Role = "User",
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
+            }
+
+            var adminEmail = "admin@footballclub.com";
+            var adminUser = await userManager.Users.FirstOrDefaultAsync(user => user.Email == adminEmail);
+
+            if (adminUser == null)
+            {
+                adminUser = new ApplicationUser
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    FullName = "System Admin",
+                    EmailConfirmed = true,
+                    IsActive = true,
                     CreatedAt = DateTime.UtcNow,
-                    IsActive = true
+                    UpdatedAt = DateTime.UtcNow
                 };
 
-                context.Users.Add(user);
-                context.SaveChanges();
+                var createResult = await userManager.CreateAsync(adminUser, "Admin@123");
+                if (createResult.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                }
             }
 
             // Seed Players
@@ -113,15 +126,8 @@ namespace FootballClubAPI.Data
                 };
 
                 context.Players.AddRange(players);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
-        }
-
-        private static string HashPassword(string password)
-        {
-            using var sha256 = SHA256.Create();
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
         }
     }
 }
