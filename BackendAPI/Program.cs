@@ -22,8 +22,18 @@ if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured.");
 }
+var useSqlite = connectionString.TrimStart().StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FootballClubAPI")));
+{
+    if (useSqlite)
+    {
+        options.UseSqlite(connectionString);
+    }
+    else
+    {
+        options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FootballClubAPI"));
+    }
+});
 
 // JWT Authentication configuration
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -154,7 +164,14 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     try
     {
-        dbContext.Database.Migrate();
+        if (dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+        {
+            dbContext.Database.EnsureCreated();
+        }
+        else
+        {
+            dbContext.Database.Migrate();
+        }
         DatabaseSeeder.SeedData(dbContext);
     }
     catch (Exception ex)

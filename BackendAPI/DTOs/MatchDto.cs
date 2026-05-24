@@ -54,6 +54,7 @@ namespace FootballClubAPI.DTOs
     {
         public int Id { get; set; }
         public int PlayerId { get; set; }
+        public int MatchId { get; set; }
         public string PlayerName { get; set; } = string.Empty;
         public int MinutesPlayed { get; set; }
         public int GoalsScored { get; set; }

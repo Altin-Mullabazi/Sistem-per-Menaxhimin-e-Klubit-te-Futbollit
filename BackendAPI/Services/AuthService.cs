@@ -32,17 +32,17 @@ namespace FootballClubAPI.Services
         {
             try
             {
-                var normalizedEmail = loginDto.Email.Trim().ToLowerInvariant();
+                var normalizedIdentifier = loginDto.Email.Trim().ToLowerInvariant();
 
                 var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedIdentifier || u.Username.ToLower() == normalizedIdentifier);
 
                 if (user == null || !_tokenHelper.VerifyPassword(loginDto.Password, user.PasswordHash))
                 {
                     return new AuthResponseDto
                     {
                         Success = false,
-                        Message = "Invalid email or password"
+                        Message = "Invalid username/email or password"
                     };
                 }
 
