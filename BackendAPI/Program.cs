@@ -125,6 +125,8 @@ builder.Services.AddScoped<ISeasonService, SeasonService>();
 builder.Services.AddScoped<IClubService, ClubService>();
 builder.Services.AddScoped<IStadiumService, StadiumService>();
 builder.Services.AddScoped<IContractService, ContractService>();
+builder.Services.AddScoped<IContractService, ContractService>();
+builder.Services.AddScoped<IInjuryService, InjuryService>();
 builder.Services.AddScoped<TokenHelper>();
 
 // FluentValidation
