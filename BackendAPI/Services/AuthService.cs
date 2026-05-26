@@ -39,7 +39,7 @@ namespace FootballClubAPI.Services
         {
             try
             {
-                var normalizedEmail = loginDto.Email.Trim().ToLowerInvariant();
+                var normalizedIdentifier = loginDto.Email.Trim().ToLowerInvariant();
 
                 var user = await _userManager.FindByEmailAsync(normalizedEmail);
 
@@ -48,7 +48,7 @@ namespace FootballClubAPI.Services
                     return new AuthResponseDto
                     {
                         Success = false,
-                        Message = "Invalid email or password"
+                        Message = "Invalid username/email or password"
                     };
                 }
 
