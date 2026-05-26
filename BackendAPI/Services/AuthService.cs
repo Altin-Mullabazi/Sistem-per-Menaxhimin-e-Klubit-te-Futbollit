@@ -74,7 +74,7 @@ namespace FootballClubAPI.Services
                 }
 
                 var roles = await _userManager.GetRolesAsync(user);
-                var primaryRole = roles.FirstOrDefault() ?? "Fan";
+                var primaryRole = roles.FirstOrDefault() ?? RoleConstants.User;
 
                 var accessToken = _tokenHelper.GenerateAccessToken(user.Id, primaryRole);
                 var refreshToken = _tokenHelper.GenerateRefreshToken();
@@ -166,7 +166,7 @@ namespace FootballClubAPI.Services
                 }
 
                 var roles = await _userManager.GetRolesAsync(user);
-                var primaryRole = roles.FirstOrDefault() ?? "Fan";
+                var primaryRole = roles.FirstOrDefault() ?? RoleConstants.User;
 
                 
                 refreshTokenEntity.IsRevoked = true;
@@ -281,7 +281,7 @@ namespace FootballClubAPI.Services
                     UserName = normalizedEmail,
                     FirstName = request.FirstName.Trim(),
                     LastName = request.LastName.Trim(),
-                    Role = "Fan",
+                    Role = RoleConstants.User,
                     FullName = fullName,
                     EmailConfirmed = false,
                     IsActive = true,
@@ -301,7 +301,7 @@ namespace FootballClubAPI.Services
                     };
                 }
 
-                var roleResult = await _userManager.AddToRoleAsync(newUser, "Fan");
+                var roleResult = await _userManager.AddToRoleAsync(newUser, RoleConstants.User);
                 if (!roleResult.Succeeded)
                 {
                     var roleErrors = string.Join("; ", roleResult.Errors.Select(error => error.Description));
@@ -309,7 +309,7 @@ namespace FootballClubAPI.Services
                 }
 
                 // Generate JWT tokens
-                var accessToken = _tokenHelper.GenerateAccessToken(newUser.Id, "Fan");
+                var accessToken = _tokenHelper.GenerateAccessToken(newUser.Id, RoleConstants.User);
                 var refreshToken = _tokenHelper.GenerateRefreshToken();
 
                 // Store refresh token in database

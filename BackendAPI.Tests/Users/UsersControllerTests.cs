@@ -50,7 +50,7 @@ namespace BackendAPI.Tests.Users
 
         private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
         {
-            foreach (var roleName in new[] { "Admin", "Manager", "Fan" })
+            foreach (var roleName in new[] { "Admin", "Manager", "Coach", "User" })
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
                 {
@@ -145,10 +145,10 @@ namespace BackendAPI.Tests.Users
             await context.Database.EnsureCreatedAsync();
             await SeedRolesAsync(roleManager);
 
-            var owner = await CreateUserAsync(userManager, "owner@test.com", "Owner", "User", "Fan");
-            await CreateUserAsync(userManager, "other@test.com", "Other", "User", "Fan");
+            var owner = await CreateUserAsync(userManager, "owner@test.com", "Owner", "User", "User");
+            await CreateUserAsync(userManager, "other@test.com", "Other", "User", "User");
 
-            var controller = CreateController(scope.ServiceProvider.GetRequiredService<IUserService>(), owner.Id, "Fan");
+            var controller = CreateController(scope.ServiceProvider.GetRequiredService<IUserService>(), owner.Id, "User");
             var result = await controller.GetUserById(Guid.NewGuid().ToString());
 
             Assert.IsType<ForbidResult>(result);
@@ -166,10 +166,10 @@ namespace BackendAPI.Tests.Users
             await context.Database.EnsureCreatedAsync();
             await SeedRolesAsync(roleManager);
 
-            var owner = await CreateUserAsync(userManager, "owner@test.com", "Owner", "User", "Fan");
-            var other = await CreateUserAsync(userManager, "other@test.com", "Other", "User", "Fan");
+            var owner = await CreateUserAsync(userManager, "owner@test.com", "Owner", "User", "User");
+            var other = await CreateUserAsync(userManager, "other@test.com", "Other", "User", "User");
 
-            var controller = CreateController(scope.ServiceProvider.GetRequiredService<IUserService>(), owner.Id, "Fan");
+            var controller = CreateController(scope.ServiceProvider.GetRequiredService<IUserService>(), owner.Id, "User");
             var result = await controller.UpdateUser(other.Id, new UpdateUserDto
             {
                 Email = "updated@test.com",

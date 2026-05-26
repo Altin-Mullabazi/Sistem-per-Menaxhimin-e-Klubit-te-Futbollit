@@ -1,4 +1,5 @@
 using FootballClubAPI.Models;
+using FootballClubAPI.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,12 +12,45 @@ namespace FootballClubAPI.Data
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
-            var roles = new[] { "Admin", "Manager", "Fan" };
+            var legacyFanRoleName = "Fan";
+
+            var roles = RoleConstants.BuiltInRoles;
             foreach (var roleName in roles)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
                 {
-                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                    await roleManager.CreateAsync(new IdentityRole
+                    {
+                        Name = roleName,
+                        NormalizedName = roleName.ToUpperInvariant()
+                    });
+                }
+            }
+
+            var legacyFanRole = await roleManager.FindByNameAsync(legacyFanRoleName);
+            if (legacyFanRole != null)
+            {
+                var userRole = await roleManager.FindByNameAsync(RoleConstants.User);
+                if (userRole == null)
+                {
+                    legacyFanRole.Name = RoleConstants.User;
+                    legacyFanRole.NormalizedName = RoleConstants.User.ToUpperInvariant();
+                    await roleManager.UpdateAsync(legacyFanRole);
+                }
+                else
+                {
+                    var usersInLegacyRole = await userManager.GetUsersInRoleAsync(legacyFanRoleName);
+                    foreach (var legacyUser in usersInLegacyRole)
+                    {
+                        if (!await userManager.IsInRoleAsync(legacyUser, RoleConstants.User))
+                        {
+                            await userManager.AddToRoleAsync(legacyUser, RoleConstants.User);
+                        }
+
+                        await userManager.RemoveFromRoleAsync(legacyUser, legacyFanRoleName);
+                    }
+
+                    await roleManager.DeleteAsync(legacyFanRole);
                 }
             }
 
@@ -31,7 +65,7 @@ namespace FootballClubAPI.Data
                     Email = adminEmail,
                     FirstName = "System",
                     LastName = "Admin",
-                    Role = "Admin",
+                    Role = RoleConstants.Admin,
                     FullName = "System Admin",
                     EmailConfirmed = true,
                     IsActive = true,
@@ -42,8 +76,12 @@ namespace FootballClubAPI.Data
                 var createResult = await userManager.CreateAsync(adminUser, "Admin@123");
                 if (createResult.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                    await userManager.AddToRoleAsync(adminUser, RoleConstants.Admin);
                 }
+            }
+            else if (!await userManager.IsInRoleAsync(adminUser, RoleConstants.Admin))
+            {
+                await userManager.AddToRoleAsync(adminUser, RoleConstants.Admin);
             }
 
             // Seed Players

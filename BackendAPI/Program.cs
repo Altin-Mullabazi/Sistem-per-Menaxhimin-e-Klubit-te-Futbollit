@@ -131,6 +131,7 @@ builder.Services.AddScoped<IMatchEventService, MatchEventService>();
 builder.Services.AddScoped<IPlayerStatsService, PlayerStatsService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ISponsorService, SponsorService>();
 builder.Services.AddScoped<ISeasonService, SeasonService>();
 builder.Services.AddScoped<IClubService, ClubService>();

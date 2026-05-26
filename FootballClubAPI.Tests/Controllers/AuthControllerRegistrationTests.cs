@@ -8,6 +8,7 @@ using FootballClubAPI.Helpers;
 using FootballClubAPI.Models;
 using FootballClubAPI.Services;
 using FootballClubAPI.Validators;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -43,11 +44,29 @@ namespace FootballClubAPI.Tests.Controllers
             _tokenHelper = new TokenHelper(configMock.Object);
 
             _authServiceLoggerMock = new Mock<ILogger<AuthService>>();
+            SeedRoles();
             _authService = new AuthService(_context, _tokenHelper, _authServiceLoggerMock.Object);
 
             _validator = new RegisterRequestValidator();
             _controllerLoggerMock = new Mock<ILogger<AuthController>>();
             _controller = new AuthController(_authService, _validator, _controllerLoggerMock.Object);
+        }
+
+        private void SeedRoles()
+        {
+            foreach (var roleName in new[] { "Admin", "Manager", "Coach", "User" })
+            {
+                if (!_context.Roles.Any(role => role.Name == roleName))
+                {
+                    _context.Roles.Add(new IdentityRole
+                    {
+                        Name = roleName,
+                        NormalizedName = roleName.ToUpperInvariant()
+                    });
+                }
+            }
+
+            _context.SaveChanges();
         }
 
         /// <summary>
