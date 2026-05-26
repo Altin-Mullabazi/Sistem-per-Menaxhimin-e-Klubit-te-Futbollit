@@ -62,6 +62,21 @@ namespace FootballClubAPI.Data
                 });
 
             modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.FirstName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.LastName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.Role)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<ApplicationUser>()
                 .Property(user => user.FullName)
                 .IsRequired()
                 .HasMaxLength(200);
@@ -162,7 +177,7 @@ namespace FootballClubAPI.Data
                 .HasOne(club => club.User)
                 .WithMany()
                 .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Stadium Configuration
             modelBuilder.Entity<Stadium>()
@@ -250,6 +265,12 @@ namespace FootballClubAPI.Data
                 .WithOne(m => m.Season)
                 .HasForeignKey(m => m.SeasonId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Season>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Season>()
                 .ToTable(tb => tb.HasCheckConstraint("CK_Seasons_StartBeforeEnd", "[StartDate] < [EndDate]"));

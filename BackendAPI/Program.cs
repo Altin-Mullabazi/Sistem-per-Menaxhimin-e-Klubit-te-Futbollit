@@ -130,6 +130,7 @@ builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<IMatchEventService, MatchEventService>();
 builder.Services.AddScoped<IPlayerStatsService, PlayerStatsService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISponsorService, SponsorService>();
 builder.Services.AddScoped<ISeasonService, SeasonService>();
 builder.Services.AddScoped<IClubService, ClubService>();
@@ -190,7 +191,6 @@ using (var scope = app.Services.CreateScope())
         {
             dbContext.Database.Migrate();
         }
-        DatabaseSeeder.SeedData(dbContext);
         dbContext.Database.Migrate();
         await DatabaseSeeder.SeedDataAsync(dbContext, userManager, roleManager);
     }

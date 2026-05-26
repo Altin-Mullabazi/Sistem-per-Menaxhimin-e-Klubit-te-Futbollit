@@ -3,8 +3,12 @@ using FootballClubAPI.DTOs;
 using FootballClubAPI.Helpers;
 using FootballClubAPI.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace FootballClubAPI.Services
 {
@@ -25,6 +29,14 @@ namespace FootballClubAPI.Services
 
         public AuthService(
             ApplicationDbContext context,
+            TokenHelper tokenHelper,
+            ILogger<AuthService> logger)
+            : this(context, CreateUserManager(context), tokenHelper, logger)
+        {
+        }
+
+        public AuthService(
+            ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             TokenHelper tokenHelper,
             ILogger<AuthService> logger)
@@ -41,7 +53,7 @@ namespace FootballClubAPI.Services
             {
                 var normalizedIdentifier = loginDto.Email.Trim().ToLowerInvariant();
 
-                var user = await _userManager.FindByEmailAsync(normalizedEmail);
+                var user = await _userManager.FindByEmailAsync(normalizedIdentifier);
 
                 if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
                 {
@@ -102,7 +114,12 @@ namespace FootballClubAPI.Services
                         Id = user.Id,
                         Username = user.UserName ?? user.Email ?? string.Empty,
                         Email = user.Email ?? string.Empty,
-                        Role = primaryRole
+                        Role = primaryRole,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        FullName = user.FullName,
+                        CreatedAt = user.CreatedAt,
+                        UpdatedAt = user.UpdatedAt
                     }
                 };
             }
@@ -182,7 +199,12 @@ namespace FootballClubAPI.Services
                         Id = user.Id,
                         Username = user.UserName ?? user.Email ?? string.Empty,
                         Email = user.Email ?? string.Empty,
-                        Role = primaryRole
+                        Role = primaryRole,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        FullName = user.FullName,
+                        CreatedAt = user.CreatedAt,
+                        UpdatedAt = user.UpdatedAt
                     }
                 };
             }
@@ -257,6 +279,9 @@ namespace FootballClubAPI.Services
                 {
                     Email = normalizedEmail,
                     UserName = normalizedEmail,
+                    FirstName = request.FirstName.Trim(),
+                    LastName = request.LastName.Trim(),
+                    Role = "Fan",
                     FullName = fullName,
                     EmailConfirmed = false,
                     IsActive = true,
@@ -370,6 +395,39 @@ namespace FootballClubAPI.Services
                     await transaction.DisposeAsync();
                 }
             }
+        }
+
+        private static UserManager<ApplicationUser> CreateUserManager(ApplicationDbContext context)
+        {
+            var store = new UserStore<ApplicationUser>(context);
+            var options = Options.Create(new IdentityOptions
+            {
+                Password =
+                {
+                    RequiredLength = 8,
+                    RequireUppercase = true,
+                    RequireLowercase = true,
+                    RequireDigit = true,
+                    RequireNonAlphanumeric = true
+                },
+                User =
+                {
+                    RequireUniqueEmail = true
+                }
+            });
+
+            var services = new ServiceCollection().BuildServiceProvider();
+
+            return new UserManager<ApplicationUser>(
+                store,
+                options,
+                new PasswordHasher<ApplicationUser>(),
+                new[] { new UserValidator<ApplicationUser>() },
+                new[] { new PasswordValidator<ApplicationUser>() },
+                new UpperInvariantLookupNormalizer(),
+                new IdentityErrorDescriber(),
+                services,
+                NullLogger<UserManager<ApplicationUser>>.Instance);
         }
 
     }
