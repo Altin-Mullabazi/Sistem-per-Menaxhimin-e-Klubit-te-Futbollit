@@ -1,16 +1,22 @@
-using Microsoft.EntityFrameworkCore;
 using FootballClubAPI.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace FootballClubAPI.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
+        public const string AdminRoleId = "3d8a2fec-a50f-4d6d-bb1c-b2caf3de9a91";
+        public const string ManagerRoleId = "716b8f4c-443c-4858-9d67-b049f6b0a16f";
+        public const string FanRoleId = "f7a2609f-1ad6-46a8-a73d-8fbc7ed8f8c8";
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
 
         public DbSet<Player> Players { get; set; }
-        public DbSet<User> Users { get; set; }
+        public DbSet<User> LegacyUsers { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Club> Clubs { get; set; }
         public DbSet<Transfer> Transfers { get; set; }
@@ -28,10 +34,49 @@ namespace FootballClubAPI.Data
         public DbSet<MatchEvent> MatchEvents { get; set; }
         public DbSet<PlayerStats> PlayerStats { get; set; }
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<IdentityRole>().HasData(
+                new IdentityRole
+                {
+                    Id = AdminRoleId,
+                    Name = "Admin",
+                    NormalizedName = "ADMIN",
+                    ConcurrencyStamp = AdminRoleId
+                },
+                new IdentityRole
+                {
+                    Id = ManagerRoleId,
+                    Name = "Manager",
+                    NormalizedName = "MANAGER",
+                    ConcurrencyStamp = ManagerRoleId
+                },
+                new IdentityRole
+                {
+                    Id = FanRoleId,
+                    Name = "Fan",
+                    NormalizedName = "FAN",
+                    ConcurrencyStamp = FanRoleId
+                });
+
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.FullName)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.CreatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
+
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.UpdatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
+
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.IsActive)
+                .HasDefaultValue(true);
 
             modelBuilder.Entity<Player>()
                 .HasKey(player => player.Id);
@@ -60,6 +105,12 @@ namespace FootballClubAPI.Data
                 .HasForeignKey(player => player.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<Player>()
+                .HasOne(player => player.CreatedByUser)
+                .WithMany(user => user.Players)
+                .HasForeignKey(player => player.CreatedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
             modelBuilder.Entity<User>()
                 .HasKey(user => user.Id);
 
@@ -79,12 +130,6 @@ namespace FootballClubAPI.Data
                 .Property(user => user.EmailVerificationToken)
                 .HasMaxLength(255);
 
-            modelBuilder.Entity<User>()
-                .HasMany(user => user.RefreshTokens)
-                .WithOne()
-                .HasForeignKey(refreshToken => refreshToken.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             modelBuilder.Entity<RefreshToken>()
                 .Property(refreshToken => refreshToken.TokenHash)
                 .HasMaxLength(88);
@@ -95,6 +140,12 @@ namespace FootballClubAPI.Data
 
             modelBuilder.Entity<RefreshToken>()
                 .HasIndex(refreshToken => new { refreshToken.UserId, refreshToken.IsRevoked, refreshToken.ExpiresAt });
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasOne<ApplicationUser>()
+                .WithMany(user => user.RefreshTokens)
+                .HasForeignKey(refreshToken => refreshToken.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Club>()
                 .HasKey(club => club.Id);
@@ -293,6 +344,96 @@ namespace FootballClubAPI.Data
                 .HasForeignKey(sponsor => sponsor.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<SponsorClub>()
+                .HasKey(sponsorClub => sponsorClub.Id);
+
+            modelBuilder.Entity<SponsorClub>()
+                .HasOne(sponsorClub => sponsorClub.Sponsor)
+                .WithMany(sponsor => sponsor.SponsorClubs)
+                .HasForeignKey(sponsorClub => sponsorClub.SponsorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SponsorClub>()
+                .HasOne(sponsorClub => sponsorClub.Club)
+                .WithMany(club => club.SponsorClubs)
+                .HasForeignKey(sponsorClub => sponsorClub.ClubId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Trophy>()
+                .HasKey(trophy => trophy.Id);
+
+            modelBuilder.Entity<Trophy>()
+                .Property(trophy => trophy.Name)
+                .IsRequired();
+
+            modelBuilder.Entity<Trophy>()
+                .HasOne(trophy => trophy.User)
+                .WithMany()
+                .HasForeignKey(trophy => trophy.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Season>()
+                .HasKey(season => season.Id);
+
+            modelBuilder.Entity<Season>()
+                .Property(season => season.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Season>()
+                .Property(season => season.StartDate)
+                .IsRequired();
+
+            modelBuilder.Entity<Season>()
+                .Property(season => season.EndDate)
+                .IsRequired();
+
+            modelBuilder.Entity<Season>()
+                .Property(season => season.Description)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<Season>()
+                .Property(season => season.CreatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
+
+            modelBuilder.Entity<Season>()
+                .Property(season => season.UpdatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
+
+            modelBuilder.Entity<Season>()
+                .HasIndex(season => season.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<Season>()
+                .HasIndex(season => season.StartDate);
+
+            modelBuilder.Entity<Season>()
+                .HasIndex(season => season.EndDate);
+
+            modelBuilder.Entity<Season>()
+                .HasMany(season => season.Matches)
+                .WithOne(match => match.Season)
+                .HasForeignKey(match => match.SeasonId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Season>()
+                .ToTable(tb => tb.HasCheckConstraint("CK_Seasons_StartBeforeEnd", "[StartDate] < [EndDate]"));
+
+            modelBuilder.Entity<ClubTrophy>()
+                .HasKey(clubTrophy => new { clubTrophy.TrophyId, clubTrophy.ClubId });
+
+            modelBuilder.Entity<ClubTrophy>()
+                .HasOne(clubTrophy => clubTrophy.Trophy)
+                .WithMany(trophy => trophy.ClubTrophies)
+                .HasForeignKey(clubTrophy => clubTrophy.TrophyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ClubTrophy>()
+                .HasOne(clubTrophy => clubTrophy.Club)
+                .WithMany(club => club.ClubTrophies)
+                .HasForeignKey(clubTrophy => clubTrophy.ClubId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Match>()
                 .HasKey(match => match.Id);
 
@@ -319,6 +460,12 @@ namespace FootballClubAPI.Data
                 .WithMany(season => season.Matches)
                 .HasForeignKey(match => match.SeasonId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Match>()
+                .HasOne(match => match.CreatedByUser)
+                .WithMany(user => user.Matches)
+                .HasForeignKey(match => match.CreatedById)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<MatchEvent>()
                 .HasKey(matchEvent => matchEvent.Id);
@@ -350,72 +497,73 @@ namespace FootballClubAPI.Data
                 .HasForeignKey(playerStats => playerStats.MatchId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ===== TRANSFER RELATIONSHIPS =====
             modelBuilder.Entity<Transfer>()
-                .HasOne(t => t.Player)
-                .WithMany(p => p.Transfers)
-                .HasForeignKey(t => t.PlayerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Transfer>()
-                .HasOne(t => t.FromClub)
-                .WithMany(c => c.OutgoingTransfers)
-                .HasForeignKey(t => t.FromClubId)
+                .HasOne(transfer => transfer.Player)
+                .WithMany(player => player.Transfers)
+                .HasForeignKey(transfer => transfer.PlayerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Transfer>()
-                .HasOne(t => t.ToClub)
-                .WithMany(c => c.IncomingTransfers)
-                .HasForeignKey(t => t.ToClubId)
+                .HasOne(transfer => transfer.FromClub)
+                .WithMany(club => club.OutgoingTransfers)
+                .HasForeignKey(transfer => transfer.FromClubId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ===== CONTRACT RELATIONSHIPS =====
-            modelBuilder.Entity<Contract>()
-                .HasOne(c => c.Player)
-                .WithMany(p => p.Contracts)
-                .HasForeignKey(c => c.PlayerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Contract>()
-                .HasOne(c => c.Club)
-                .WithMany(cl => cl.Contracts)
-                .HasForeignKey(c => c.ClubId)
+            modelBuilder.Entity<Transfer>()
+                .HasOne(transfer => transfer.ToClub)
+                .WithMany(club => club.IncomingTransfers)
+                .HasForeignKey(transfer => transfer.ToClubId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Contract>()
-                .HasIndex(c => c.PlayerId)
+                .HasOne(contract => contract.Player)
+                .WithMany(player => player.Contracts)
+                .HasForeignKey(contract => contract.PlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Contract>()
+                .HasOne(contract => contract.Club)
+                .WithMany(club => club.Contracts)
+                .HasForeignKey(contract => contract.ClubId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Contract>()
+                .HasOne(contract => contract.CreatedByUser)
+                .WithMany(user => user.Contracts)
+                .HasForeignKey(contract => contract.CreatedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Contract>()
+                .HasIndex(contract => contract.PlayerId)
                 .IsUnique()
                 .HasFilter("Status = 1");
 
-            // ===== INJURY RELATIONSHIPS =====
             modelBuilder.Entity<Injury>()
-                .HasOne(i => i.Player)
-                .WithMany(p => p.Injuries)
-                .HasForeignKey(i => i.PlayerId)
+                .HasOne(injury => injury.Player)
+                .WithMany(player => player.Injuries)
+                .HasForeignKey(injury => injury.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ===== TRAINING SESSION RELATIONSHIPS =====
             modelBuilder.Entity<TrainingSession>()
-                .HasOne(ts => ts.Club)
-                .WithMany(c => c.TrainingSessions)
-                .HasForeignKey(ts => ts.ClubId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // ===== TRAINING ATTENDANCE RELATIONSHIPS =====
-            modelBuilder.Entity<TrainingAttendance>()
-                .HasOne(ta => ta.TrainingSession)
-                .WithMany(ts => ts.Attendances)
-                .HasForeignKey(ta => ta.TrainingSessionId)
+                .HasOne(trainingSession => trainingSession.Club)
+                .WithMany(club => club.TrainingSessions)
+                .HasForeignKey(trainingSession => trainingSession.ClubId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<TrainingAttendance>()
-                .HasOne(ta => ta.Player)
-                .WithMany(p => p.TrainingAttendances)
-                .HasForeignKey(ta => ta.PlayerId)
+                .HasOne(trainingAttendance => trainingAttendance.TrainingSession)
+                .WithMany(trainingSession => trainingSession.Attendances)
+                .HasForeignKey(trainingAttendance => trainingAttendance.TrainingSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TrainingAttendance>()
+                .HasOne(trainingAttendance => trainingAttendance.Player)
+                .WithMany(player => player.TrainingAttendances)
+                .HasForeignKey(trainingAttendance => trainingAttendance.PlayerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<TrainingAttendance>()
-                .HasIndex(ta => new { ta.TrainingSessionId, ta.PlayerId })
+                .HasIndex(trainingAttendance => new { trainingAttendance.TrainingSessionId, trainingAttendance.PlayerId })
                 .IsUnique();
         }
     }

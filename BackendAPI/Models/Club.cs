@@ -35,8 +35,12 @@ namespace FootballClubAPI.Models
         [ForeignKey("User")]
         public string UserId { get; set; } = string.Empty;
 
+        [ForeignKey("CreatedByUser")]
+        public string? CreatedById { get; set; }
+
         // Navigation properties
         public virtual User? User { get; set; }
+        public virtual ApplicationUser? CreatedByUser { get; set; }
         public virtual ICollection<Player> Players { get; set; } = new List<Player>();
         public virtual ICollection<Stadium> Stadiums { get; set; } = new List<Stadium>();
         public virtual ICollection<SponsorClub> SponsorClubs { get; set; } = new List<SponsorClub>();

@@ -42,8 +42,6 @@ namespace FootballClubAPI.Models
 
         public bool IsActive { get; set; } = true;
 
-        public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
-
         /// <summary>
         /// Returns the full name of the user (FirstName + LastName).
         /// </summary>
