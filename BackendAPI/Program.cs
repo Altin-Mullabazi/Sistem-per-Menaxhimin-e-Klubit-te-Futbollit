@@ -20,16 +20,20 @@ builder.Services.AddControllers();
 
 // Database configuration
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var useSqlServer = !string.IsNullOrWhiteSpace(connectionString);
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured.");
+}
+var useSqlite = connectionString.TrimStart().StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    if (useSqlServer)
+    if (useSqlite)
     {
-        options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FootballClubAPI"));
+        options.UseSqlite(connectionString);
     }
     else
     {
-        options.UseSqlite("Data Source=FootballClubAPI.db");
+        options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FootballClubAPI"));
     }
 });
 
@@ -126,11 +130,14 @@ builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<IMatchEventService, MatchEventService>();
 builder.Services.AddScoped<IPlayerStatsService, PlayerStatsService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISponsorService, SponsorService>();
 builder.Services.AddScoped<ISeasonService, SeasonService>();
 builder.Services.AddScoped<IClubService, ClubService>();
 builder.Services.AddScoped<IStadiumService, StadiumService>();
 builder.Services.AddScoped<IContractService, ContractService>();
+builder.Services.AddScoped<IContractService, ContractService>();
+builder.Services.AddScoped<IInjuryService, InjuryService>();
 builder.Services.AddScoped<TokenHelper>();
 
 // FluentValidation

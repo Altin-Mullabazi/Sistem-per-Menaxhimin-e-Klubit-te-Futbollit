@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FootballClubAPI.Models
 {
@@ -22,6 +23,11 @@ namespace FootballClubAPI.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        [ForeignKey("User")]
+        public string UserId { get; set; } = string.Empty;
+
+        public virtual User? User { get; set; }
 
         public ICollection<Match> Matches { get; set; } = new HashSet<Match>();
     }

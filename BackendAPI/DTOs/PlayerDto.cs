@@ -112,4 +112,5 @@ namespace FootballClubAPI.DTOs
         [Required]
         public int? ClubId { get; set; }
     }
+
 }

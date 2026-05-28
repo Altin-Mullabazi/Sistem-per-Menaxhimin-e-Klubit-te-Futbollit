@@ -209,7 +209,7 @@ namespace FootballClubAPI.Controllers
         /// </summary>
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> DeletePlayer(int id)
@@ -220,7 +220,7 @@ namespace FootballClubAPI.Controllers
                 if (!result)
                     return NotFound(new { success = false, message = "Player not found" });
 
-                return Ok(new { success = true, message = "Player deleted successfully" });
+                return NoContent();
             }
             catch (Exception ex)
             {

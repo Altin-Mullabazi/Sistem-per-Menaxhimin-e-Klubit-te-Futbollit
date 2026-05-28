@@ -29,6 +29,9 @@ namespace FootballClubAPI.Data
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
+                    FirstName = "System",
+                    LastName = "Admin",
+                    Role = "Admin",
                     FullName = "System Admin",
                     EmailConfirmed = true,
                     IsActive = true,

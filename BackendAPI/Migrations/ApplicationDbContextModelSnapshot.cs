@@ -46,6 +46,11 @@ namespace FootballClubAPI.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -55,6 +60,11 @@ namespace FootballClubAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -78,6 +88,11 @@ namespace FootballClubAPI.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -149,7 +164,6 @@ namespace FootballClubAPI.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -572,6 +586,10 @@ namespace FootballClubAPI.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("EndDate");
@@ -580,6 +598,8 @@ namespace FootballClubAPI.Migrations
                         .IsUnique();
 
                     b.HasIndex("StartDate");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Seasons", t =>
                         {
@@ -688,7 +708,6 @@ namespace FootballClubAPI.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("YearBuilt")
@@ -1080,14 +1099,12 @@ namespace FootballClubAPI.Migrations
                 {
                     b.HasOne("FootballClubAPI.Models.ApplicationUser", "CreatedByUser")
                         .WithMany("Clubs")
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("CreatedById");
 
                     b.HasOne("FootballClubAPI.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("CreatedByUser");
 
@@ -1263,6 +1280,17 @@ namespace FootballClubAPI.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("FootballClubAPI.Models.Season", b =>
+                {
+                    b.HasOne("FootballClubAPI.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FootballClubAPI.Models.Sponsor", b =>
                 {
                     b.HasOne("FootballClubAPI.Models.User", "User")
@@ -1303,8 +1331,7 @@ namespace FootballClubAPI.Migrations
                     b.HasOne("FootballClubAPI.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Club");
 

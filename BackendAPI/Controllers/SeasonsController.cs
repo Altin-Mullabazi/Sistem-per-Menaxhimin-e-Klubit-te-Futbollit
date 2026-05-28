@@ -131,5 +131,26 @@ namespace FootballClubAPI.Controllers
                 return StatusCode(500, new { success = false, message = "An error occurred while updating the season" });
             }
         }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteSeason(int id)
+        {
+            try
+            {
+                var deleted = await _seasonService.DeleteSeasonAsync(id);
+                if (!deleted)
+                    return NotFound(new { success = false, message = "Season not found" });
+
+                return Ok(new { success = true, message = "Season deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error deleting season {Id}: {Message}", id, ex.Message);
+                return StatusCode(500, new { success = false, message = "An error occurred while deleting the season" });
+            }
+        }
     }
 }
