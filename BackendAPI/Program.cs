@@ -184,21 +184,21 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     try
     {
-        if (dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
-        {
-            dbContext.Database.EnsureCreated();
-        }
-        else
+        if (dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.SqlServer")
         {
             dbContext.Database.Migrate();
         }
-        dbContext.Database.Migrate();
+        else
+        {
+            dbContext.Database.EnsureCreated();
+        }
+
         await DatabaseSeeder.SeedDataAsync(dbContext, userManager, roleManager);
     }
     catch (Exception ex)
     {
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Database migration failed");
+        logger.LogError(ex, "Database initialization failed");
         throw;
     }
 }
