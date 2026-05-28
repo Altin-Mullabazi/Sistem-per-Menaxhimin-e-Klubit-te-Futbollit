@@ -110,65 +110,108 @@ namespace FootballClubAPI.Services
 
         public async Task<ContractDto> CreateContractAsync(CreateContractDto createContractDto)
         {
-            // Business logic: Ensure only one active contract per player
-            if (createContractDto.IsActive)
+            // ✅ TRANSACTIONAL: Ensure atomic operation
+            // Use transaction to guarantee only ONE active contract per player
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
             {
-                await DeactivateExistingActiveContractAsync(createContractDto.PlayerId);
+                // Business logic: Ensure only one active contract per player
+                if (createContractDto.IsActive)
+                {
+                    // Find and deactivate any existing active contract
+                    var existingActiveContract = await _context.Contracts
+                        .FirstOrDefaultAsync(c => c.PlayerId == createContractDto.PlayerId && 
+                                                 c.Status == ContractStatus.Active);
+
+                    if (existingActiveContract != null)
+                    {
+                        existingActiveContract.Status = ContractStatus.Expired;
+                        existingActiveContract.UpdatedAt = DateTime.UtcNow;
+                        _context.Contracts.Update(existingActiveContract);
+                    }
+                }
+
+                // Create new contract
+                var contract = new Contract
+                {
+                    PlayerId = createContractDto.PlayerId,
+                    ClubId = createContractDto.ClubId,
+                    StartDate = createContractDto.StartDate,
+                    EndDate = createContractDto.EndDate,
+                    Salary = createContractDto.Salary,
+                    Position = createContractDto.Position,
+                    Status = createContractDto.IsActive ? ContractStatus.Active : ContractStatus.Pending,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _context.Contracts.Add(contract);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                // Load navigation properties
+                await _context.Entry(contract).Reference(c => c.Player).LoadAsync();
+                await _context.Entry(contract).Reference(c => c.Club).LoadAsync();
+
+                return MapToDto(contract);
             }
-
-            var contract = new Contract
+            catch
             {
-                PlayerId = createContractDto.PlayerId,
-                ClubId = createContractDto.ClubId,
-                StartDate = createContractDto.StartDate,
-                EndDate = createContractDto.EndDate,
-                Salary = createContractDto.Salary,
-                Position = createContractDto.Position,
-                Status = createContractDto.IsActive ? ContractStatus.Active : ContractStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            _context.Contracts.Add(contract);
-            await _context.SaveChangesAsync();
-
-            // Load navigation properties
-            await _context.Entry(contract).Reference(c => c.Player).LoadAsync();
-            await _context.Entry(contract).Reference(c => c.Club).LoadAsync();
-
-            return MapToDto(contract);
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<ContractDto?> UpdateContractAsync(int id, UpdateContractDto updateContractDto)
         {
-            var contract = await _context.Contracts.FindAsync(id);
-            if (contract == null)
-                return null;
+            // ✅ TRANSACTIONAL: Ensure atomic operation
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            // Business logic: Ensure only one active contract per player
-            if (updateContractDto.IsActive && contract.Status != ContractStatus.Active)
+            try
             {
-                await DeactivateExistingActiveContractAsync(contract.PlayerId);
+                var contract = await _context.Contracts.FindAsync(id);
+                if (contract == null)
+                    return null;
+
+                // Business logic: Ensure only one active contract per player
+                if (updateContractDto.IsActive && contract.Status != ContractStatus.Active)
+                {
+                    // Need to deactivate any existing active contract for this player
+                    var existingActiveContract = await _context.Contracts
+                        .FirstOrDefaultAsync(c => c.PlayerId == contract.PlayerId && 
+                                                 c.Id != id &&
+                                                 c.Status == ContractStatus.Active);
+
+                    if (existingActiveContract != null)
+                    {
+                        existingActiveContract.Status = ContractStatus.Expired;
+                        existingActiveContract.UpdatedAt = DateTime.UtcNow;
+                        _context.Contracts.Update(existingActiveContract);
+                    }
+                }
+
+                contract.EndDate = updateContractDto.EndDate;
+                contract.Salary = updateContractDto.Salary;
+                contract.Position = updateContractDto.Position;
+                contract.Status = updateContractDto.IsActive ? ContractStatus.Active : ContractStatus.Expired;
+                contract.UpdatedAt = DateTime.UtcNow;
+
+                _context.Contracts.Update(contract);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                // Load navigation properties
+                await _context.Entry(contract).Reference(c => c.Player).LoadAsync();
+                await _context.Entry(contract).Reference(c => c.Club).LoadAsync();
+
+                return MapToDto(contract);
             }
-            else if (!updateContractDto.IsActive && contract.Status == ContractStatus.Active)
+            catch
             {
-                // If deactivating, no need to check others
+                await transaction.RollbackAsync();
+                throw;
             }
-
-            contract.EndDate = updateContractDto.EndDate;
-            contract.Salary = updateContractDto.Salary;
-            contract.Position = updateContractDto.Position;
-            contract.Status = updateContractDto.IsActive ? ContractStatus.Active : ContractStatus.Expired;
-            contract.UpdatedAt = DateTime.UtcNow;
-
-            _context.Contracts.Update(contract);
-            await _context.SaveChangesAsync();
-
-            // Load navigation properties
-            await _context.Entry(contract).Reference(c => c.Player).LoadAsync();
-            await _context.Entry(contract).Reference(c => c.Club).LoadAsync();
-
-            return MapToDto(contract);
         }
 
         public async Task<bool> DeleteContractAsync(int id)
@@ -181,19 +224,6 @@ namespace FootballClubAPI.Services
             await _context.SaveChangesAsync();
 
             return true;
-        }
-
-        private async Task DeactivateExistingActiveContractAsync(int playerId)
-        {
-            var activeContract = await _context.Contracts
-                .FirstOrDefaultAsync(c => c.PlayerId == playerId && c.Status == ContractStatus.Active);
-
-            if (activeContract != null)
-            {
-                activeContract.Status = ContractStatus.Expired;
-                activeContract.UpdatedAt = DateTime.UtcNow;
-                _context.Contracts.Update(activeContract);
-            }
         }
 
         private static ContractDto MapToDto(Contract contract)
