@@ -13,6 +13,13 @@ namespace FootballClubAPI.Data
             RoleManager<IdentityRole> roleManager)
         {
             var legacyFanRoleName = "Fan";
+            var demoUsers = new[]
+            {
+                new { Email = "admin@email.com", Role = RoleConstants.Admin, FirstName = "System", LastName = "Admin" },
+                new { Email = "manager@email.com", Role = RoleConstants.Manager, FirstName = "System", LastName = "Manager" },
+                new { Email = "coach@email.com", Role = RoleConstants.Coach, FirstName = "System", LastName = "Coach" },
+                new { Email = "user@email.com", Role = RoleConstants.User, FirstName = "System", LastName = "User" }
+            };
 
             var roles = RoleConstants.BuiltInRoles;
             foreach (var roleName in roles)
@@ -54,34 +61,41 @@ namespace FootballClubAPI.Data
                 }
             }
 
-            var adminEmail = "admin@footballclub.com";
-            var adminUser = await userManager.Users.FirstOrDefaultAsync(user => user.Email == adminEmail);
-
-            if (adminUser == null)
+            foreach (var demoUser in demoUsers)
             {
-                adminUser = new ApplicationUser
-                {
-                    UserName = adminEmail,
-                    Email = adminEmail,
-                    FirstName = "System",
-                    LastName = "Admin",
-                    Role = RoleConstants.Admin,
-                    FullName = "System Admin",
-                    EmailConfirmed = true,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+                var existingUser = await userManager.FindByEmailAsync(demoUser.Email);
 
-                var createResult = await userManager.CreateAsync(adminUser, "Admin@123");
-                if (createResult.Succeeded)
+                if (existingUser == null)
                 {
-                    await userManager.AddToRoleAsync(adminUser, RoleConstants.Admin);
+                    existingUser = new ApplicationUser
+                    {
+                        UserName = demoUser.Email,
+                        Email = demoUser.Email,
+                        FirstName = demoUser.FirstName,
+                        LastName = demoUser.LastName,
+                        Role = demoUser.Role,
+                        FullName = $"{demoUser.FirstName} {demoUser.LastName}",
+                        EmailConfirmed = true,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    var createResult = await userManager.CreateAsync(existingUser, "Pass@word123");
+                    if (!createResult.Succeeded)
+                    {
+                        continue;
+                    }
                 }
-            }
-            else if (!await userManager.IsInRoleAsync(adminUser, RoleConstants.Admin))
-            {
-                await userManager.AddToRoleAsync(adminUser, RoleConstants.Admin);
+
+                if (!await userManager.IsInRoleAsync(existingUser, demoUser.Role))
+                {
+                    await userManager.AddToRoleAsync(existingUser, demoUser.Role);
+                }
+
+                existingUser.Role = demoUser.Role;
+                existingUser.UpdatedAt = DateTime.UtcNow;
+                await userManager.UpdateAsync(existingUser);
             }
 
             // Seed Players
