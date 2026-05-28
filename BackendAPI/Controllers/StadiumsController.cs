@@ -184,7 +184,7 @@ namespace FootballClubAPI.Controllers
         /// <param name="id">Stadium ID to delete</param>
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -203,7 +203,7 @@ namespace FootballClubAPI.Controllers
                     return BadRequest(new { success = false, message = message });
                 }
 
-                return NoContent();
+                return Ok(new { success = true, message = message });
             }
             catch (Exception ex)
             {

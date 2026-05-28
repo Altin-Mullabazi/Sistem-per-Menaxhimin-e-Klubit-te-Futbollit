@@ -167,7 +167,7 @@ namespace FootballClubAPI.Controllers
         /// </summary>
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -182,7 +182,7 @@ namespace FootballClubAPI.Controllers
                 if (!result)
                     return NotFound(new { success = false, message = "Club not found" });
 
-                return NoContent();
+                return Ok(new { success = true, message = "Club deleted successfully" });
             }
             catch (Exception ex)
             {
