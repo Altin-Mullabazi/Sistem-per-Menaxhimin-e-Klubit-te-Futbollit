@@ -68,11 +68,11 @@ namespace FootballClubAPI.Data
 
             modelBuilder.Entity<ApplicationUser>()
                 .Property(user => user.CreatedAt)
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             modelBuilder.Entity<ApplicationUser>()
                 .Property(user => user.UpdatedAt)
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             modelBuilder.Entity<ApplicationUser>()
                 .Property(user => user.IsActive)
@@ -270,11 +270,11 @@ namespace FootballClubAPI.Data
 
             modelBuilder.Entity<Season>()
                 .Property(season => season.CreatedAt)
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             modelBuilder.Entity<Season>()
                 .Property(season => season.UpdatedAt)
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             modelBuilder.Entity<Season>()
                 .HasIndex(season => season.Name)

@@ -112,29 +112,4 @@ namespace FootballClubAPI.DTOs
         [Required]
         public int? ClubId { get; set; }
     }
-
-    // DTOs for related entities
-    public class ContractDto
-    {
-        public int Id { get; set; }
-        public int PlayerId { get; set; }
-        public int ClubId { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public decimal Salary { get; set; }
-    }
-
-    public class PlayerStatsDto
-    {
-        public int Id { get; set; }
-        public int PlayerId { get; set; }
-        public int MatchId { get; set; }
-        public string? PlayerName { get; set; }
-        public int MinutesPlayed { get; set; }
-        public int GoalsScored { get; set; }
-        public int Assists { get; set; }
-        public int YellowCards { get; set; }
-        public int RedCards { get; set; }
-        public decimal? Rating { get; set; }
-    }
 }

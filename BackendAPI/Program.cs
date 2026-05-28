@@ -20,12 +20,18 @@ builder.Services.AddControllers();
 
 // Database configuration
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (string.IsNullOrWhiteSpace(connectionString))
-{
-    throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured.");
-}
+var useSqlServer = !string.IsNullOrWhiteSpace(connectionString);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FootballClubAPI")));
+{
+    if (useSqlServer)
+    {
+        options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FootballClubAPI"));
+    }
+    else
+    {
+        options.UseSqlite("Data Source=FootballClubAPI.db");
+    }
+});
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
@@ -170,13 +176,21 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     try
     {
-        dbContext.Database.Migrate();
+        if (dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.SqlServer")
+        {
+            dbContext.Database.Migrate();
+        }
+        else
+        {
+            dbContext.Database.EnsureCreated();
+        }
+
         await DatabaseSeeder.SeedDataAsync(dbContext, userManager, roleManager);
     }
     catch (Exception ex)
     {
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Database migration failed");
+        logger.LogError(ex, "Database initialization failed");
         throw;
     }
 }
