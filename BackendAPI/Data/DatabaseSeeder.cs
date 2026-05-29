@@ -21,13 +21,14 @@ namespace FootballClubAPI.Data
             }
 
             var adminEmail = "admin@footballclub.com";
-            var adminUser = await userManager.Users.FirstOrDefaultAsync(user => user.Email == adminEmail);
+            var adminUsername = "admin";
+            var adminUser = await userManager.Users.FirstOrDefaultAsync(user => user.Email == adminEmail || user.UserName == adminUsername);
 
             if (adminUser == null)
             {
                 adminUser = new ApplicationUser
                 {
-                    UserName = adminEmail,
+                    UserName = adminUsername,
                     Email = adminEmail,
                     FullName = "System Admin",
                     EmailConfirmed = true,

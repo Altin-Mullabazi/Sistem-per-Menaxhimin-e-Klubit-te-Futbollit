@@ -190,8 +190,6 @@ using (var scope = app.Services.CreateScope())
         {
             dbContext.Database.Migrate();
         }
-        DatabaseSeeder.SeedData(dbContext);
-        dbContext.Database.Migrate();
         await DatabaseSeeder.SeedDataAsync(dbContext, userManager, roleManager);
     }
     catch (Exception ex)

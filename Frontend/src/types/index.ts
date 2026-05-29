@@ -172,3 +172,51 @@ export interface ApiResponse<T> {
   data?: T;
   message: string;
 }
+
+export interface DashboardSummary {
+  totalClubs: number;
+  totalPlayers: number;
+  totalMatches: number;
+  totalStaff: number;
+  totalInjuries: number;
+  totalContracts: number;
+}
+
+export interface UpcomingMatch {
+  id: number;
+  homeTeam: string;
+  awayTeam: string;
+  date: string;
+  stadium: string;
+}
+
+export interface TopScorer {
+  id?: number;
+  playerName: string;
+  clubName: string;
+  goals: number;
+  assists: number;
+}
+
+export interface InjuredPlayer {
+  id: number;
+  playerName: string;
+  injury: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface ExpiringContract {
+  id: number;
+  playerName: string;
+  clubName: string;
+  endDate: string;
+}
+
+export interface RecentTransfer {
+  id: number;
+  playerName: string;
+  fromClubName: string;
+  toClubName: string;
+  fee: string;
+}
