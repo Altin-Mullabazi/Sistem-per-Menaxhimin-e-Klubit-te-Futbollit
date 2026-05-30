@@ -9,7 +9,7 @@ namespace FootballClubAPI.Services
     {
         Task<PaginatedResult<SponsorDto>> GetSponsorsAsync(int page = 1, int pageSize = 10);
         Task<SponsorDetailDto?> GetSponsorByIdAsync(int id);
-        Task<SponsorDto> CreateSponsorAsync(CreateSponsorDto createSponsorDto);
+        Task<SponsorDto> CreateSponsorAsync(CreateSponsorDto createSponsorDto, string? userId = null);
         Task<SponsorDto?> UpdateSponsorAsync(int id, UpdateSponsorDto updateSponsorDto);
         Task<bool> DeleteSponsorAsync(int id);
     }
@@ -77,9 +77,19 @@ namespace FootballClubAPI.Services
             return MapToDetailDto(sponsor);
         }
 
-        public async Task<SponsorDto> CreateSponsorAsync(CreateSponsorDto createSponsorDto)
+        public async Task<SponsorDto> CreateSponsorAsync(CreateSponsorDto createSponsorDto, string? userId = null)
         {
             _logger.LogInformation("Creating new sponsor: {Name}", createSponsorDto.Name);
+
+            if (string.IsNullOrWhiteSpace(userId) && _context.Database.IsRelational())
+            {
+                userId = await _context.LegacyUsers.Select(user => user.Id).FirstOrDefaultAsync();
+            }
+
+            if (string.IsNullOrWhiteSpace(userId) && _context.Database.IsRelational())
+            {
+                throw new InvalidOperationException("Unable to resolve an owner user for the sponsor");
+            }
 
             var sponsor = new Sponsor
             {
@@ -87,7 +97,8 @@ namespace FootballClubAPI.Services
                 Logo = string.IsNullOrWhiteSpace(createSponsorDto.Logo) ? null : createSponsorDto.Logo.Trim(),
                 Website = string.IsNullOrWhiteSpace(createSponsorDto.Website) ? null : createSponsorDto.Website.Trim(),
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                UserId = userId ?? string.Empty
             };
 
             _context.Sponsors.Add(sponsor);

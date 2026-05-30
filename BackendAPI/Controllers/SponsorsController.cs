@@ -2,6 +2,7 @@ using FootballClubAPI.DTOs;
 using FootballClubAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FootballClubAPI.Controllers
 {
@@ -88,7 +89,8 @@ namespace FootballClubAPI.Controllers
 
             try
             {
-                var sponsor = await _sponsorService.CreateSponsorAsync(createSponsorDto);
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var sponsor = await _sponsorService.CreateSponsorAsync(createSponsorDto, currentUserId);
                 return CreatedAtAction(nameof(GetSponsorById), new { id = sponsor.Id }, new { success = true, data = sponsor, message = "Sponsor created successfully" });
             }
             catch (Exception ex)

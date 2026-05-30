@@ -96,7 +96,44 @@ namespace FootballClubAPI.Data
                 existingUser.Role = demoUser.Role;
                 existingUser.UpdatedAt = DateTime.UtcNow;
                 await userManager.UpdateAsync(existingUser);
+
+                var legacyUser = await context.LegacyUsers.FirstOrDefaultAsync(user =>
+                    user.Id == existingUser.Id ||
+                    user.Email == existingUser.Email ||
+                    user.Username == existingUser.UserName);
+
+                if (legacyUser == null)
+                {
+                    context.LegacyUsers.Add(new User
+                    {
+                        Id = existingUser.Id,
+                        Username = existingUser.UserName ?? existingUser.Email ?? demoUser.Email,
+                        Email = existingUser.Email ?? demoUser.Email,
+                        PasswordHash = existingUser.PasswordHash ?? string.Empty,
+                        FirstName = existingUser.FirstName,
+                        LastName = existingUser.LastName,
+                        Role = demoUser.Role,
+                        EmailVerified = true,
+                        CreatedAt = existingUser.CreatedAt,
+                        UpdatedAt = existingUser.UpdatedAt,
+                        IsActive = true
+                    });
+                }
+                else
+                {
+                    legacyUser.Username = existingUser.UserName ?? legacyUser.Username;
+                    legacyUser.Email = existingUser.Email ?? legacyUser.Email;
+                    legacyUser.PasswordHash = existingUser.PasswordHash ?? legacyUser.PasswordHash;
+                    legacyUser.FirstName = existingUser.FirstName;
+                    legacyUser.LastName = existingUser.LastName;
+                    legacyUser.Role = demoUser.Role;
+                    legacyUser.EmailVerified = true;
+                    legacyUser.UpdatedAt = DateTime.UtcNow;
+                    legacyUser.IsActive = true;
+                }
             }
+
+            await context.SaveChangesAsync();
 
             // Seed Players
             if (!context.Players.Any())
