@@ -234,6 +234,8 @@ namespace FootballClubAPI.Migrations
 
                     b.HasIndex("CreatedById");
 
+                    b.HasIndex("EndDate", "Status");
+
                     b.HasIndex("PlayerId")
                         .IsUnique()
                         .HasFilter("Status = 1");
@@ -279,6 +281,8 @@ namespace FootballClubAPI.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("PlayerId");
+
+                    b.HasIndex("Status", "InjuryDate");
 
                     b.ToTable("Injuries");
                 });
@@ -340,6 +344,8 @@ namespace FootballClubAPI.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("HomeClubId");
+
+                    b.HasIndex("MatchDate", "Status");
 
                     b.HasIndex("SeasonId");
 
@@ -816,6 +822,8 @@ namespace FootballClubAPI.Migrations
                     b.HasIndex("PlayerId");
 
                     b.HasIndex("ToClubId");
+
+                    b.HasIndex("TransferDate");
 
                     b.ToTable("Transfers");
                 });

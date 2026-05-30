@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using FootballClubAPI.Models;
 
@@ -17,7 +18,7 @@ namespace FootballClubAPI.DTOs
         public DateTime UpdatedAt { get; set; }
     }
 
-    public class CreateInjuryDto
+    public class CreateInjuryDto : IValidatableObject
     {
         [Required(ErrorMessage = "PlayerId is required")]
         [Range(1, int.MaxValue, ErrorMessage = "PlayerId must be valid")]
@@ -32,14 +33,24 @@ namespace FootballClubAPI.DTOs
 
         [StringLength(1000, ErrorMessage = "Notes cannot exceed 1000 characters")]
         public string? Notes { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (InjuryDate > DateTime.UtcNow.Date)
+            {
+                yield return new ValidationResult(
+                    "InjuryDate cannot be in the future",
+                    new[] { nameof(InjuryDate) });
+            }
+        }
     }
 
     public class UpdateInjuryDto
     {
         public DateTime? RecoveryDate { get; set; }
 
-        [StringLength(100, ErrorMessage = "Status must be valid")]
-        public string? Status { get; set; }
+        [EnumDataType(typeof(InjuryStatus), ErrorMessage = "Status must be Active, Recovering, or Recovered")]
+        public InjuryStatus? Status { get; set; }
 
         [StringLength(1000, ErrorMessage = "Notes cannot exceed 1000 characters")]
         public string? Notes { get; set; }
