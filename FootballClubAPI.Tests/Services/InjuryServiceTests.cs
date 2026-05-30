@@ -163,10 +163,8 @@ namespace FootballClubAPI.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(2, result.Data.Count); // Active and Recovering
-            Assert.All(result.Data, injury => Assert.True(
-                injury.Status == "Active" || injury.Status == "Recovering"
-            ));
+            Assert.Single(result.Data);
+            Assert.All(result.Data, injury => Assert.Equal("Active", injury.Status));
         }
 
         [Fact]

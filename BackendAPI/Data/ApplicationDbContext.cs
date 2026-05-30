@@ -1,4 +1,5 @@
 using FootballClubAPI.Models;
+using FootballClubAPI.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,8 @@ namespace FootballClubAPI.Data
     {
         public const string AdminRoleId = "3d8a2fec-a50f-4d6d-bb1c-b2caf3de9a91";
         public const string ManagerRoleId = "716b8f4c-443c-4858-9d67-b049f6b0a16f";
-        public const string FanRoleId = "f7a2609f-1ad6-46a8-a73d-8fbc7ed8f8c8";
+        public const string CoachRoleId = "1a7f9d2f-4f72-4e8b-9d34-6f0c0a7fd1b2";
+        public const string UserRoleId = "9b9d5f5f-6b34-4c7f-8b35-4d4f5fd6d3b8";
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -42,24 +44,46 @@ namespace FootballClubAPI.Data
                 new IdentityRole
                 {
                     Id = AdminRoleId,
-                    Name = "Admin",
-                    NormalizedName = "ADMIN",
+                    Name = RoleConstants.Admin,
+                    NormalizedName = RoleConstants.Admin.ToUpperInvariant(),
                     ConcurrencyStamp = AdminRoleId
                 },
                 new IdentityRole
                 {
                     Id = ManagerRoleId,
-                    Name = "Manager",
-                    NormalizedName = "MANAGER",
+                    Name = RoleConstants.Manager,
+                    NormalizedName = RoleConstants.Manager.ToUpperInvariant(),
                     ConcurrencyStamp = ManagerRoleId
                 },
                 new IdentityRole
                 {
-                    Id = FanRoleId,
-                    Name = "Fan",
-                    NormalizedName = "FAN",
-                    ConcurrencyStamp = FanRoleId
+                    Id = CoachRoleId,
+                    Name = RoleConstants.Coach,
+                    NormalizedName = RoleConstants.Coach.ToUpperInvariant(),
+                    ConcurrencyStamp = CoachRoleId
+                },
+                new IdentityRole
+                {
+                    Id = UserRoleId,
+                    Name = RoleConstants.User,
+                    NormalizedName = RoleConstants.User.ToUpperInvariant(),
+                    ConcurrencyStamp = UserRoleId
                 });
+
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.FirstName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.LastName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.Role)
+                .IsRequired()
+                .HasMaxLength(50);
 
             modelBuilder.Entity<ApplicationUser>()
                 .Property(user => user.FullName)
@@ -162,7 +186,7 @@ namespace FootballClubAPI.Data
                 .HasOne(club => club.User)
                 .WithMany()
                 .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Stadium Configuration
             modelBuilder.Entity<Stadium>()
@@ -250,6 +274,12 @@ namespace FootballClubAPI.Data
                 .WithOne(m => m.Season)
                 .HasForeignKey(m => m.SeasonId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Season>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Season>()
                 .ToTable(tb => tb.HasCheckConstraint("CK_Seasons_StartBeforeEnd", "[StartDate] < [EndDate]"));

@@ -5,6 +5,7 @@ using FootballClubAPI.DTOs;
 using FootballClubAPI.Helpers;
 using FootballClubAPI.Models;
 using FootballClubAPI.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -35,7 +36,25 @@ namespace FootballClubAPI.Tests.Services
             _tokenHelper = new TokenHelper(configMock.Object);
 
             _loggerMock = new Mock<ILogger<AuthService>>();
+            SeedRoles();
             _authService = new AuthService(_context, _tokenHelper, _loggerMock.Object);
+        }
+
+        private void SeedRoles()
+        {
+            foreach (var roleName in new[] { "Admin", "Manager", "Coach", "User" })
+            {
+                if (!_context.Roles.Any(role => role.Name == roleName))
+                {
+                    _context.Roles.Add(new IdentityRole
+                    {
+                        Name = roleName,
+                        NormalizedName = roleName.ToUpperInvariant()
+                    });
+                }
+            }
+
+            _context.SaveChanges();
         }
 
         /// <summary>
@@ -122,8 +141,10 @@ namespace FootballClubAPI.Tests.Services
             var userInDb = _context.Users.FirstOrDefault(u => u.Email == "hashtest@example.com");
             Assert.NotNull(userInDb);
             Assert.NotEqual(plainPassword, userInDb.PasswordHash);
-            // Verify password can be verified with BCrypt
-            Assert.True(_tokenHelper.VerifyPassword(plainPassword, userInDb.PasswordHash));
+
+            var passwordHasher = new PasswordHasher<ApplicationUser>();
+            var verifyResult = passwordHasher.VerifyHashedPassword(userInDb!, userInDb.PasswordHash, plainPassword);
+            Assert.Equal(PasswordVerificationResult.Success, verifyResult);
         }
 
         /// <summary>
@@ -220,10 +241,10 @@ namespace FootballClubAPI.Tests.Services
         }
 
         /// <summary>
-        /// Test: Default role is "Fan" for new registrations
+        /// Test: Default role is "User" for new registrations
         /// </summary>
         [Fact]
-        public async Task RegisterAsync_DefaultRoleIsFan()
+        public async Task RegisterAsync_DefaultRoleIsUser()
         {
             // Arrange
             var request = new RegisterRequest
@@ -241,7 +262,7 @@ namespace FootballClubAPI.Tests.Services
             // Assert
             var userInDb = _context.Users.FirstOrDefault(u => u.Email == "roletest@example.com");
             Assert.NotNull(userInDb);
-            Assert.Equal("Fan", userInDb.Role);
+            Assert.Equal("User", userInDb.Role);
         }
 
         /// <summary>
@@ -266,7 +287,7 @@ namespace FootballClubAPI.Tests.Services
             // Assert
             var userInDb = _context.Users.FirstOrDefault(u => u.Email == "emailverify@example.com");
             Assert.NotNull(userInDb);
-            Assert.False(userInDb.EmailVerified);
+            Assert.False(userInDb.EmailConfirmed);
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 using FootballClubAPI.Models;
+using FootballClubAPI.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,22 +12,63 @@ namespace FootballClubAPI.Data
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
-            var roles = new[] { "Admin", "Manager", "Fan" };
+            var legacyFanRoleName = "Fan";
+            var demoUsers = new[]
+            {
+                new { Email = "admin@email.com", Role = RoleConstants.Admin, FirstName = "System", LastName = "Admin" },
+                new { Email = "manager@email.com", Role = RoleConstants.Manager, FirstName = "System", LastName = "Manager" },
+                new { Email = "coach@email.com", Role = RoleConstants.Coach, FirstName = "System", LastName = "Coach" },
+                new { Email = "user@email.com", Role = RoleConstants.User, FirstName = "System", LastName = "User" }
+            };
+
+            var roles = RoleConstants.BuiltInRoles;
             foreach (var roleName in roles)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
                 {
-                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                    await roleManager.CreateAsync(new IdentityRole
+                    {
+                        Name = roleName,
+                        NormalizedName = roleName.ToUpperInvariant()
+                    });
                 }
             }
 
             var adminEmail = "admin@footballclub.com";
             var adminUsername = "admin";
             var adminUser = await userManager.Users.FirstOrDefaultAsync(user => user.Email == adminEmail || user.UserName == adminUsername);
-
-            if (adminUser == null)
+            var legacyFanRole = await roleManager.FindByNameAsync(legacyFanRoleName);
+            if (legacyFanRole != null)
             {
-                adminUser = new ApplicationUser
+                var userRole = await roleManager.FindByNameAsync(RoleConstants.User);
+                if (userRole == null)
+                {
+                    legacyFanRole.Name = RoleConstants.User;
+                    legacyFanRole.NormalizedName = RoleConstants.User.ToUpperInvariant();
+                    await roleManager.UpdateAsync(legacyFanRole);
+                }
+                else
+                {
+                    var usersInLegacyRole = await userManager.GetUsersInRoleAsync(legacyFanRoleName);
+                    foreach (var legacyUser in usersInLegacyRole)
+                    {
+                        if (!await userManager.IsInRoleAsync(legacyUser, RoleConstants.User))
+                        {
+                            await userManager.AddToRoleAsync(legacyUser, RoleConstants.User);
+                        }
+
+                        await userManager.RemoveFromRoleAsync(legacyUser, legacyFanRoleName);
+                    }
+
+                    await roleManager.DeleteAsync(legacyFanRole);
+                }
+            }
+
+            foreach (var demoUser in demoUsers)
+            {
+                var existingUser = await userManager.FindByEmailAsync(demoUser.Email);
+
+                if (existingUser == null)
                 {
                     UserName = adminUsername,
                     Email = adminEmail,
@@ -37,11 +79,21 @@ namespace FootballClubAPI.Data
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                var createResult = await userManager.CreateAsync(adminUser, "Admin@123");
-                if (createResult.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                    var createResult = await userManager.CreateAsync(existingUser, "Pass@word123");
+                    if (!createResult.Succeeded)
+                    {
+                        continue;
+                    }
                 }
+
+                if (!await userManager.IsInRoleAsync(existingUser, demoUser.Role))
+                {
+                    await userManager.AddToRoleAsync(existingUser, demoUser.Role);
+                }
+
+                existingUser.Role = demoUser.Role;
+                existingUser.UpdatedAt = DateTime.UtcNow;
+                await userManager.UpdateAsync(existingUser);
             }
 
             // Seed Players
