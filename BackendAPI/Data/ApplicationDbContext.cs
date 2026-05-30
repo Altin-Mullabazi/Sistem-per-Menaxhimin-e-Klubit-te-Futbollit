@@ -497,6 +497,9 @@ namespace FootballClubAPI.Data
                 .HasForeignKey(match => match.CreatedById)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<Match>()
+                .HasIndex(match => new { match.MatchDate, match.Status });
+
             modelBuilder.Entity<MatchEvent>()
                 .HasKey(matchEvent => matchEvent.Id);
 
@@ -527,6 +530,9 @@ namespace FootballClubAPI.Data
                 .HasForeignKey(playerStats => playerStats.MatchId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<PlayerStats>()
+                .HasIndex(playerStats => playerStats.PlayerId);
+
             modelBuilder.Entity<Transfer>()
                 .HasOne(transfer => transfer.Player)
                 .WithMany(player => player.Transfers)
@@ -544,6 +550,9 @@ namespace FootballClubAPI.Data
                 .WithMany(club => club.IncomingTransfers)
                 .HasForeignKey(transfer => transfer.ToClubId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Transfer>()
+                .HasIndex(transfer => transfer.TransferDate);
 
             modelBuilder.Entity<Contract>()
                 .HasOne(contract => contract.Player)
@@ -568,11 +577,17 @@ namespace FootballClubAPI.Data
                 .IsUnique()
                 .HasFilter("Status = 1");
 
+            modelBuilder.Entity<Contract>()
+                .HasIndex(contract => new { contract.EndDate, contract.Status });
+
             modelBuilder.Entity<Injury>()
                 .HasOne(injury => injury.Player)
                 .WithMany(player => player.Injuries)
                 .HasForeignKey(injury => injury.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Injury>()
+                .HasIndex(injury => new { injury.Status, injury.InjuryDate });
 
             modelBuilder.Entity<TrainingSession>()
                 .HasOne(trainingSession => trainingSession.Club)

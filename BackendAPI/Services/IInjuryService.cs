@@ -152,12 +152,9 @@ namespace FootballClubAPI.Services
             }
 
             // Update Status if provided
-            if (!string.IsNullOrEmpty(updateInjuryDto.Status))
+            if (updateInjuryDto.Status.HasValue)
             {
-                if (Enum.TryParse<InjuryStatus>(updateInjuryDto.Status, ignoreCase: true, out var injuryStatus))
-                    injury.Status = injuryStatus;
-                else
-                    throw new ArgumentException($"Invalid status: {updateInjuryDto.Status}");
+                injury.Status = updateInjuryDto.Status.Value;
             }
 
             // Update Notes if provided
