@@ -34,9 +34,6 @@ namespace FootballClubAPI.Data
                 }
             }
 
-            var adminEmail = "admin@footballclub.com";
-            var adminUsername = "admin";
-            var adminUser = await userManager.Users.FirstOrDefaultAsync(user => user.Email == adminEmail || user.UserName == adminUsername);
             var legacyFanRole = await roleManager.FindByNameAsync(legacyFanRoleName);
             if (legacyFanRole != null)
             {
@@ -70,14 +67,19 @@ namespace FootballClubAPI.Data
 
                 if (existingUser == null)
                 {
-                    UserName = adminUsername,
-                    Email = adminEmail,
-                    FullName = "System Admin",
-                    EmailConfirmed = true,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+                    existingUser = new ApplicationUser
+                    {
+                        UserName = demoUser.Email,
+                        Email = demoUser.Email,
+                        FirstName = demoUser.FirstName,
+                        LastName = demoUser.LastName,
+                        FullName = $"{demoUser.FirstName} {demoUser.LastName}",
+                        EmailConfirmed = true,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        Role = demoUser.Role
+                    };
 
                     var createResult = await userManager.CreateAsync(existingUser, "Pass@word123");
                     if (!createResult.Succeeded)

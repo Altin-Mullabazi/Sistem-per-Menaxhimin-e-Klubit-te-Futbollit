@@ -425,7 +425,7 @@ namespace FootballClubAPI.Services
             return new UserManager<ApplicationUser>(
                 store,
                 options,
-                new PasswordHasher<ApplicationUser>(),
+                new BcryptPasswordHasher<ApplicationUser>(),
                 new[] { new UserValidator<ApplicationUser>() },
                 new[] { new PasswordValidator<ApplicationUser>() },
                 new UpperInvariantLookupNormalizer(),
