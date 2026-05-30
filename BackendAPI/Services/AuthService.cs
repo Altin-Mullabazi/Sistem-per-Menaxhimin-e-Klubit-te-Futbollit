@@ -51,9 +51,13 @@ namespace FootballClubAPI.Services
         {
             try
             {
-                var normalizedIdentifier = loginDto.Email.Trim().ToLowerInvariant();
+                var identifier = loginDto.Email.Trim();
+                var user = await _userManager.FindByEmailAsync(identifier);
 
-                var user = await _userManager.FindByEmailAsync(normalizedIdentifier);
+                if (user == null)
+                {
+                    user = await _userManager.FindByNameAsync(identifier);
+                }
 
                 if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
                 {

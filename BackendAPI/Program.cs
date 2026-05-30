@@ -193,7 +193,6 @@ using (var scope = app.Services.CreateScope())
         {
             dbContext.Database.Migrate();
         }
-        dbContext.Database.Migrate();
         await DatabaseSeeder.SeedDataAsync(dbContext, userManager, roleManager);
     }
     catch (Exception ex)
