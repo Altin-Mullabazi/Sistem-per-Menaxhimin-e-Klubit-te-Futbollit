@@ -11,6 +11,11 @@ import Matches from './pages/Matches';
 import PlayerStatsPage from './pages/PlayerStatsPage';
 import UsersPage from './pages/UsersPage';
 import SponsorsSeasons from './pages/SponsorsSeasons';
+import Transfers from './pages/Transfers';
+import Contracts from './pages/Contracts';
+import Injuries from './pages/Injuries';
+import Stadiums from './pages/Stadiums';
+import Profile from './pages/Profile';
 import './styles/App.css';
 
 function App() {
@@ -64,6 +69,47 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <PlayerStatsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/transfers"
+                element={
+                  <ProtectedRoute>
+                    <Transfers />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/contracts"
+                element={
+                  <ProtectedRoute>
+                    <Contracts />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/injuries"
+                element={
+                  <ProtectedRoute>
+                    <Injuries />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/stadiums"
+                element={
+                  <ProtectedRoute>
+                    <Stadiums />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
                 path="/users"
                 element={
                   <ProtectedRoute>
@@ -77,6 +123,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <SponsorsSeasons />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
                   </ProtectedRoute>
                 }
               />

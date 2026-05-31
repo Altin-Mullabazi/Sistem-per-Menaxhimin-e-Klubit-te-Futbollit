@@ -311,6 +311,8 @@ export interface UpdateMatchDto {
   homeScore?: number;
   awayScore?: number;
   status?: string;
+}
+
 export interface DashboardSummary {
   totalClubs: number;
   totalPlayers: number;
@@ -328,7 +330,7 @@ export interface UpcomingMatch {
   stadium: string;
 }
 
-export interface TopScorer {
+export interface TopScorerSummary {
   id?: number;
   playerName: string;
   clubName: string;
