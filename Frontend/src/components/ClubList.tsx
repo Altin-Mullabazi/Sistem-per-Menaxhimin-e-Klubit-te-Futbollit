@@ -1,31 +1,31 @@
 import React from 'react';
-import { Player } from '../types';
+import { Club } from '../types';
 import '../styles/List.css';
 
-interface PlayerListProps {
-  players: Player[];
+interface ClubListProps {
+  clubs: Club[];
   isLoading: boolean;
-  onEdit: (player: Player) => void;
+  onEdit: (club: Club) => void;
   onDelete: (id: number) => void;
   canEdit: boolean;
   canDelete: boolean;
 }
 
-const PlayerList: React.FC<PlayerListProps> = ({ players, isLoading, onEdit, onDelete, canEdit, canDelete }) => {
+const ClubList: React.FC<ClubListProps> = ({ clubs, isLoading, onEdit, onDelete, canEdit, canDelete }) => {
   if (isLoading) {
     return (
       <div className="loading">
         <div className="spinner"></div>
-        <p>Loading players...</p>
+        <p>Loading clubs...</p>
       </div>
     );
   }
 
-  if (players.length === 0) {
+  if (clubs.length === 0) {
     return (
       <div className="empty-state">
-        <div className="empty-icon">👥</div>
-        <p>No players found. Try adjusting your search or filters.</p>
+        <div className="empty-icon">📭</div>
+        <p>No clubs found. Try adjusting your search or filters.</p>
       </div>
     );
   }
@@ -34,37 +34,38 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, isLoading, onEdit, onD
     <>
       {/* Desktop Table View */}
       <div className="list-desktop">
-        <table className="players-table">
+        <table className="clubs-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Position</th>
-              <th>Age</th>
-              <th>Jersey #</th>
-              <th>Club</th>
-              <th>Joined</th>
+              <th>Club Name</th>
+              <th>City</th>
+              <th>Founded</th>
+              <th>President</th>
+              <th>Budget</th>
+              <th>Players</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {players.map((player) => (
-              <tr key={player.id} className="player-row">
-                <td className="player-name">
-                  <strong>{player.firstName} {player.lastName}</strong>
+            {clubs.map((club) => (
+              <tr key={club.id} className="club-row">
+                <td className="club-name">
+                  {club.logoUrl && (
+                    <img src={club.logoUrl} alt={club.name} className="club-logo" />
+                  )}
+                  <span>{club.name}</span>
                 </td>
-                <td>
-                  <span className="position-badge">{player.position}</span>
-                </td>
-                <td className="center">{player.age}</td>
-                <td className="center">{player.jerseyNumber || '—'}</td>
-                <td>{player.clubName || '—'}</td>
-                <td>{new Date(player.createdAt).toLocaleDateString()}</td>
+                <td>{club.city}</td>
+                <td>{club.foundedYear}</td>
+                <td>{club.president || '—'}</td>
+                <td>{club.budget ? `$${club.budget.toLocaleString()}` : '—'}</td>
+                <td className="player-count">{club.playerCount}</td>
                 <td className="actions">
                   {canEdit && (
                     <button
                       className="btn btn-sm btn-secondary"
-                      onClick={() => onEdit(player)}
-                      title="Edit player"
+                      onClick={() => onEdit(club)}
+                      title="Edit club"
                     >
                       Edit
                     </button>
@@ -72,8 +73,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, isLoading, onEdit, onD
                   {canDelete && (
                     <button
                       className="btn btn-sm btn-danger"
-                      onClick={() => onDelete(player.id)}
-                      title="Delete player"
+                      onClick={() => onDelete(club.id)}
+                      title="Delete club"
                     >
                       Delete
                     </button>
@@ -91,35 +92,38 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, isLoading, onEdit, onD
       {/* Mobile Card View */}
       <div className="list-mobile">
         <div className="cards-grid">
-          {players.map((player) => (
-            <div key={player.id} className="player-card">
+          {clubs.map((club) => (
+            <div key={club.id} className="club-card">
+              {club.logoUrl && (
+                <img src={club.logoUrl} alt={club.name} className="card-logo" />
+              )}
               <div className="card-content">
-                <h3 className="card-title">{player.firstName} {player.lastName}</h3>
+                <h3 className="card-title">{club.name}</h3>
                 <div className="card-detail">
-                  <span className="label">Position:</span>
-                  <span className="position-badge">{player.position}</span>
+                  <span className="label">City:</span>
+                  <span className="value">{club.city}</span>
                 </div>
                 <div className="card-detail">
-                  <span className="label">Age:</span>
-                  <span className="value">{player.age}</span>
+                  <span className="label">Founded:</span>
+                  <span className="value">{club.foundedYear}</span>
                 </div>
                 <div className="card-detail">
-                  <span className="label">Jersey:</span>
-                  <span className="value">{player.jerseyNumber || '—'}</span>
+                  <span className="label">President:</span>
+                  <span className="value">{club.president || '—'}</span>
                 </div>
                 <div className="card-detail">
-                  <span className="label">Club:</span>
-                  <span className="value">{player.clubName || '—'}</span>
+                  <span className="label">Budget:</span>
+                  <span className="value">{club.budget ? `$${club.budget.toLocaleString()}` : '—'}</span>
                 </div>
                 <div className="card-detail">
-                  <span className="label">Joined:</span>
-                  <span className="value">{new Date(player.createdAt).toLocaleDateString()}</span>
+                  <span className="label">Players:</span>
+                  <span className="value badge">{club.playerCount}</span>
                 </div>
                 <div className="card-actions">
                   {canEdit && (
                     <button
                       className="btn btn-sm btn-secondary"
-                      onClick={() => onEdit(player)}
+                      onClick={() => onEdit(club)}
                     >
                       Edit
                     </button>
@@ -127,7 +131,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, isLoading, onEdit, onD
                   {canDelete && (
                     <button
                       className="btn btn-sm btn-danger"
-                      onClick={() => onDelete(player.id)}
+                      onClick={() => onDelete(club.id)}
                     >
                       Delete
                     </button>
@@ -145,4 +149,4 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, isLoading, onEdit, onD
   );
 };
 
-export default PlayerList;
+export default ClubList;

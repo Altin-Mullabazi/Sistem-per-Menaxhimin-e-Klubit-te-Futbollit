@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Navigation } from './components/Navigation';
 import { Login } from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Clubs from './pages/Clubs';
 import Players from './pages/Players';
 import SponsorsSeasons from './pages/SponsorsSeasons';
 import './styles/App.css';
@@ -24,6 +25,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/clubs"
+                element={
+                  <ProtectedRoute>
+                    <Clubs />
                   </ProtectedRoute>
                 }
               />

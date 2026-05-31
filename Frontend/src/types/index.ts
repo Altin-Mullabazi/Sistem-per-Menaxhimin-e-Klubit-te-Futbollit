@@ -1,10 +1,63 @@
+export interface Club {
+  id: number;
+  name: string;
+  city: string;
+  logoUrl?: string;
+  foundedYear: number;
+  president?: string;
+  budget?: number;
+  playerCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClubDetail extends Club {
+  players: ClubPlayer[];
+}
+
+export interface ClubPlayer {
+  id: number;
+  firstName: string;
+  lastName: string;
+  position: string;
+  jerseyNumber: number;
+}
+
+export interface CreateClubDto {
+  name: string;
+  city: string;
+  logoUrl?: string;
+  foundedYear: number;
+  president?: string;
+  budget?: number;
+}
+
+export interface UpdateClubDto {
+  name?: string;
+  city?: string;
+  logoUrl?: string;
+  foundedYear?: number;
+  president?: string;
+  budget?: number;
+}
+
+export interface ClubListResponse {
+  data: Club[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export interface Player {
   id: number;
   firstName: string;
   lastName: string;
   age: number;
   position: string;
+  clubId?: number;
   clubName?: string;
+  jerseyNumber?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -14,7 +67,9 @@ export interface CreatePlayerDto {
   lastName: string;
   age: number;
   position: string;
+  clubId?: number;
   clubName?: string;
+  jerseyNumber?: number;
 }
 
 export interface UpdatePlayerDto {
@@ -22,34 +77,17 @@ export interface UpdatePlayerDto {
   lastName: string;
   age: number;
   position: string;
+  clubId?: number;
   clubName?: string;
+  jerseyNumber?: number;
 }
 
-export interface Player {
-  id: number;
-  firstName: string;
-  lastName: string;
-  age: number;
-  position: string;
-  clubName?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreatePlayerDto {
-  firstName: string;
-  lastName: string;
-  age: number;
-  position: string;
-  clubName?: string;
-}
-
-export interface UpdatePlayerDto {
-  firstName: string;
-  lastName: string;
-  age: number;
-  position: string;
-  clubName?: string;
+export interface PlayerListResponse {
+  data: Player[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 export interface User {

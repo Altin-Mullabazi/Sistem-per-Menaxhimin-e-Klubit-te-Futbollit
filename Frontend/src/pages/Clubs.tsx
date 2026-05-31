@@ -1,20 +1,19 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Player, PlayerListResponse, Club } from '../types';
-import { playerService } from '../services/playerService';
+import { Club, ClubListResponse } from '../types';
 import { clubService } from '../services/clubService';
-import PlayerForm from '../components/PlayerForm';
-import PlayerList from '../components/PlayerList';
+import ClubForm from '../components/ClubForm';
+import ClubList from '../components/ClubList';
 import '../styles/Management.css';
 
-export const Players: React.FC = () => {
+export const Clubs: React.FC = () => {
   const { user } = useAuth();
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [clubs, setClubs] = useState<Club[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+  const [editingClub, setEditingClub] = useState<Club | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,52 +23,44 @@ export const Players: React.FC = () => {
 
   // Filter and search state
   const [searchTerm, setSearchTerm] = useState('');
-  const [positionFilter, setPositionFilter] = useState('');
-  const [clubFilter, setClubFilter] = useState('');
-  const [clubs, setClubs] = useState<Club[]>([]);
-  const [positions, setPositions] = useState<string[]>([]);
+  const [cityFilter, setCityFilter] = useState('');
+  const [cities, setCities] = useState<string[]>([]);
 
   // Debounce timer
   const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
 
-  const positions_list = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward', 'Left Winger', 'Right Winger'];
-
-  const loadPlayers = useCallback(async (page: number = 1, search?: string, position?: string, clubId?: number) => {
+  const loadClubs = useCallback(async (page: number = 1, search?: string, city?: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response: PlayerListResponse = await playerService.getPlayers(page, pageSize, search, position, clubId);
-      setPlayers(response.data);
+      const response: ClubListResponse = await clubService.getClubs(page, pageSize, search, city);
+      setClubs(response.data);
       setTotalPages(response.totalPages);
       setTotalCount(response.totalCount);
       setCurrentPage(page);
     } catch (err: any) {
-      setError(err.message || 'Failed to load players');
+      setError(err.message || 'Failed to load clubs');
     } finally {
       setIsLoading(false);
     }
   }, [pageSize]);
 
   useEffect(() => {
-    loadPlayers(1);
-  }, [loadPlayers]);
+    loadClubs(1);
+  }, [loadClubs]);
 
-  // Load clubs for filter
+  // Load unique cities for filter
   useEffect(() => {
-    const loadClubs = async () => {
+    const loadCities = async () => {
       try {
         const allClubs = await clubService.getAllClubs();
-        setClubs(allClubs);
+        const uniqueCities = [...new Set(allClubs.map(c => c.city))].sort();
+        setCities(uniqueCities);
       } catch (err: any) {
-        console.error('Failed to load clubs:', err);
+        console.error('Failed to load cities:', err);
       }
     };
-    loadClubs();
-  }, []);
-
-  // Load positions
-  useEffect(() => {
-    setPositions(positions_list);
+    loadCities();
   }, []);
 
   // Debounced search
@@ -79,67 +70,55 @@ export const Players: React.FC = () => {
 
     if (searchTimeout) clearTimeout(searchTimeout);
     const timeout = setTimeout(() => {
-      const clubId = clubFilter ? parseInt(clubFilter) : undefined;
-      loadPlayers(1, value, positionFilter, clubId);
+      loadClubs(1, value, cityFilter);
     }, 500);
     setSearchTimeout(timeout);
   };
 
-  const handlePositionFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCityFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    setPositionFilter(value);
-    const clubId = clubFilter ? parseInt(clubFilter) : undefined;
-    loadPlayers(1, searchTerm, value, clubId);
-  };
-
-  const handleClubFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setClubFilter(value);
-    const clubId = value ? parseInt(value) : undefined;
-    loadPlayers(1, searchTerm, positionFilter, clubId);
+    setCityFilter(value);
+    loadClubs(1, searchTerm, value);
   };
 
   const handleCreateClick = () => {
-    setEditingPlayer(null);
+    setEditingClub(null);
     setShowForm(true);
   };
 
-  const handleEditClick = (player: Player) => {
-    setEditingPlayer(player);
+  const handleEditClick = (club: Club) => {
+    setEditingClub(club);
     setShowForm(true);
   };
 
   const handleFormClose = () => {
     setShowForm(false);
-    setEditingPlayer(null);
+    setEditingClub(null);
   };
 
   const handleFormSubmit = async () => {
-    const action = editingPlayer ? 'updated' : 'created';
-    setSuccess(`Player ${action} successfully!`);
+    const action = editingClub ? 'updated' : 'created';
+    setSuccess(`Club ${action} successfully!`);
     setTimeout(() => setSuccess(null), 3000);
-    const clubId = clubFilter ? parseInt(clubFilter) : undefined;
-    await loadPlayers(1, searchTerm, positionFilter, clubId);
+    await loadClubs(1, searchTerm, cityFilter);
     handleFormClose();
   };
 
-  const handleDeletePlayer = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this player?')) {
+  const handleDeleteClub = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this club?')) {
       try {
-        await playerService.deletePlayer(id);
-        setSuccess('Player deleted successfully!');
+        await clubService.deleteClub(id);
+        setSuccess('Club deleted successfully!');
         setTimeout(() => setSuccess(null), 3000);
-        const clubId = clubFilter ? parseInt(clubFilter) : undefined;
-        await loadPlayers(currentPage, searchTerm, positionFilter, clubId);
+        await loadClubs(currentPage, searchTerm, cityFilter);
       } catch (err: any) {
-        setError(err.message || 'Failed to delete player');
+        setError(err.message || 'Failed to delete club');
       }
     }
   };
 
   const handlePageChange = (newPage: number) => {
-    const clubId = clubFilter ? parseInt(clubFilter) : undefined;
-    loadPlayers(newPage, searchTerm, positionFilter, clubId);
+    loadClubs(newPage, searchTerm, cityFilter);
   };
 
   // Role-based permissions
@@ -150,7 +129,7 @@ export const Players: React.FC = () => {
   return (
     <div className="management-container">
       <div className="management-header">
-        <h1>👥 Players Management</h1>
+        <h1>⚽ Clubs Management</h1>
         <div className="header-info">
           <p>Logged in as: <strong>{user?.username}</strong> ({user?.role})</p>
         </div>
@@ -178,7 +157,7 @@ export const Players: React.FC = () => {
               onClick={handleCreateClick}
               disabled={isLoading || showForm}
             >
-              + Add New Player
+              + Add New Club
             </button>
           )}
         </div>
@@ -187,7 +166,7 @@ export const Players: React.FC = () => {
           <div className="search-box">
             <input
               type="text"
-              placeholder="Search by player name..."
+              placeholder="Search by club name..."
               value={searchTerm}
               onChange={handleSearchChange}
               disabled={isLoading}
@@ -198,8 +177,7 @@ export const Players: React.FC = () => {
                 className="search-clear"
                 onClick={() => {
                   setSearchTerm('');
-                  const clubId = clubFilter ? parseInt(clubFilter) : undefined;
-                  loadPlayers(1, '', positionFilter, clubId);
+                  loadClubs(1, '', cityFilter);
                 }}
               >
                 ✕
@@ -209,28 +187,14 @@ export const Players: React.FC = () => {
 
           <select
             className="filter-select"
-            value={positionFilter}
-            onChange={handlePositionFilter}
+            value={cityFilter}
+            onChange={handleCityFilter}
             disabled={isLoading}
           >
-            <option value="">All Positions</option>
-            {positions.map((pos) => (
-              <option key={pos} value={pos}>
-                {pos}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="filter-select"
-            value={clubFilter}
-            onChange={handleClubFilter}
-            disabled={isLoading}
-          >
-            <option value="">All Clubs</option>
-            {clubs.map((club) => (
-              <option key={club.id} value={club.id}>
-                {club.name}
+            <option value="">All Cities</option>
+            {cities.map((city) => (
+              <option key={city} value={city}>
+                {city}
               </option>
             ))}
           </select>
@@ -238,19 +202,18 @@ export const Players: React.FC = () => {
       </div>
 
       {showForm && (
-        <PlayerForm
-          player={editingPlayer}
+        <ClubForm
+          club={editingClub}
           onClose={handleFormClose}
           onSubmit={handleFormSubmit}
-          clubs={clubs}
         />
       )}
 
-      <PlayerList
-        players={players}
+      <ClubList
+        clubs={clubs}
         isLoading={isLoading}
         onEdit={handleEditClick}
-        onDelete={handleDeletePlayer}
+        onDelete={handleDeleteClub}
         canEdit={canEdit}
         canDelete={canDelete}
       />
@@ -267,7 +230,7 @@ export const Players: React.FC = () => {
           </button>
 
           <div className="pagination-info">
-            Page {currentPage} of {totalPages} ({totalCount} total players)
+            Page {currentPage} of {totalPages} ({totalCount} total clubs)
           </div>
 
           <button
@@ -283,4 +246,4 @@ export const Players: React.FC = () => {
   );
 };
 
-export default Players;
+export default Clubs;
