@@ -21,14 +21,14 @@ namespace FootballClubAPI.Controllers
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetPlayerStats(int page = 1, int pageSize = 10)
+        public async Task<IActionResult> GetPlayerStats(int page = 1, int pageSize = 10, int? playerId = null, int? matchId = null, string? sortBy = null)
         {
             if (page < 1 || pageSize < 1 || pageSize > 100)
                 return BadRequest(new { success = false, message = "Invalid pagination: page >= 1, pageSize 1-100" });
 
             try
             {
-                var (stats, totalCount) = await _playerStatsService.GetPlayerStatsAsync(page, pageSize);
+                var (stats, totalCount) = await _playerStatsService.GetPlayerStatsAsync(page, pageSize, playerId, matchId, sortBy);
                 return Ok(new
                 {
                     success = true,
@@ -47,6 +47,25 @@ namespace FootballClubAPI.Controllers
             {
                 _logger.LogError($"Error retrieving player stats: {ex.Message}");
                 return StatusCode(500, new { success = false, message = "An error occurred while retrieving player stats" });
+            }
+        }
+
+        [HttpGet("top-assists")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetTopAssists(int limit = 10)
+        {
+            if (limit < 1 || limit > 100)
+                return BadRequest(new { success = false, message = "Limit must be between 1 and 100" });
+
+            try
+            {
+                var topAssists = await _playerStatsService.GetTopAssistsAsync(limit);
+                return Ok(new { success = true, data = topAssists, message = "Top assists retrieved successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error retrieving top assists: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "An error occurred while retrieving top assists" });
             }
         }
 

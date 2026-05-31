@@ -6,6 +6,7 @@ using FootballClubAPI.DTOs;
 using FootballClubAPI.Models;
 using FootballClubAPI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Xunit;
 
 namespace BackendAPI.Tests.Services
@@ -16,6 +17,7 @@ namespace BackendAPI.Tests.Services
         {
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(databaseName)
+                .ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning))
                 .Options;
 
             return new ApplicationDbContext(options);
@@ -523,6 +525,86 @@ namespace BackendAPI.Tests.Services
         }
 
         [Fact]
+        public async Task CreateContractAsync_DeactivatesAllExistingActiveContracts_ForSamePlayer()
+        {
+            using var context = CreateDbContext(Guid.NewGuid().ToString());
+            var (player, club) = CreateTestPlayerAndClub(context);
+            context.Contracts.AddRange(
+                new Contract
+                {
+                    PlayerId = player.Id,
+                    ClubId = club.Id,
+                    StartDate = new DateTime(2024, 1, 1),
+                    EndDate = new DateTime(2025, 1, 1),
+                    Salary = 1000,
+                    Position = "Forward",
+                    Status = ContractStatus.Active,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new Contract
+                {
+                    PlayerId = player.Id,
+                    ClubId = club.Id,
+                    StartDate = new DateTime(2025, 1, 2),
+                    EndDate = new DateTime(2026, 1, 1),
+                    Salary = 2000,
+                    Position = "Forward",
+                    Status = ContractStatus.Active,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            await context.SaveChangesAsync();
+
+            var service = CreateService(context);
+            var created = await service.CreateContractAsync(new CreateContractDto
+            {
+                PlayerId = player.Id,
+                ClubId = club.Id,
+                StartDate = new DateTime(2026, 1, 2),
+                EndDate = new DateTime(2027, 1, 1),
+                Salary = 3000,
+                Position = "Forward",
+                IsActive = true
+            });
+
+            var activeContracts = context.Contracts
+                .Where(contract => contract.PlayerId == player.Id && contract.Status == ContractStatus.Active)
+                .ToList();
+
+            Assert.Single(activeContracts);
+            Assert.Equal(created.Id, activeContracts.Single().Id);
+        }
+
+        [Fact]
+        public async Task CreateContractAsync_WithMissingPlayerOrClub_ThrowsValidationException()
+        {
+            using var context = CreateDbContext(Guid.NewGuid().ToString());
+            var (_, club) = CreateTestPlayerAndClub(context);
+            var service = CreateService(context);
+
+            await Assert.ThrowsAsync<ArgumentException>(() => service.CreateContractAsync(new CreateContractDto
+            {
+                PlayerId = 999,
+                ClubId = club.Id,
+                StartDate = new DateTime(2026, 1, 1),
+                EndDate = new DateTime(2027, 1, 1),
+                Salary = 50000,
+                Position = "Forward",
+                IsActive = true
+            }));
+
+            await Assert.ThrowsAsync<ArgumentException>(() => service.CreateContractAsync(new CreateContractDto
+            {
+                PlayerId = context.Players.Single().Id,
+                ClubId = 999,
+                StartDate = new DateTime(2026, 1, 1),
+                EndDate = new DateTime(2027, 1, 1),
+                Salary = 50000,
+                Position = "Forward",
+                IsActive = true
+            }));
+        }
+
+        [Fact]
         public async Task GetContractsAsync_FilterByPlayerId_ReturnsOnlyForThatPlayer()
         {
             using var context = CreateDbContext(Guid.NewGuid().ToString());
@@ -708,6 +790,61 @@ namespace BackendAPI.Tests.Services
             // Should only return the first contract
             Assert.Single(result.Items);
             Assert.Equal(contract1.Id, result.Items.First().Id);
+        }
+
+        [Fact]
+        public async Task GetContractsAsync_WithDaysFilter_ReturnsExpiringActiveContracts()
+        {
+            using var context = CreateDbContext(Guid.NewGuid().ToString());
+            var (player, club) = CreateTestPlayerAndClub(context);
+            var service = CreateService(context);
+
+            await service.CreateContractAsync(new CreateContractDto
+            {
+                PlayerId = player.Id,
+                ClubId = club.Id,
+                StartDate = DateTime.UtcNow.Date.AddMonths(-1),
+                EndDate = DateTime.UtcNow.Date.AddDays(10),
+                Salary = 50000,
+                Position = "Forward",
+                IsActive = true
+            });
+
+            // Another contract for a different player should not affect this query
+            var secondPlayer = new Player
+            {
+                FirstName = "Different",
+                LastName = "Player",
+                JerseyNumber = 20,
+                Position = "Defender",
+                DateOfBirth = new DateTime(1995, 1, 1),
+                Nationality = "Country"
+            };
+            context.Players.Add(secondPlayer);
+            context.SaveChanges();
+
+            await service.CreateContractAsync(new CreateContractDto
+            {
+                PlayerId = secondPlayer.Id,
+                ClubId = club.Id,
+                StartDate = DateTime.UtcNow.Date.AddMonths(-1),
+                EndDate = DateTime.UtcNow.Date.AddDays(120),
+                Salary = 60000,
+                Position = "Forward",
+                IsActive = true
+            });
+
+            var parameters = new ContractQueryParameters
+            {
+                Page = 1,
+                PageSize = 100,
+                Days = 30
+            };
+
+            var result = await service.GetContractsAsync(parameters);
+
+            Assert.Single(result.Items);
+            Assert.True(result.Items.First().EndDate <= DateTime.UtcNow.Date.AddDays(30));
         }
 
         [Fact]
