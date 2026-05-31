@@ -8,7 +8,7 @@ namespace FootballClubAPI.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Season name is required")]
-        [StringLength(100)]
+        [StringLength(100, ErrorMessage = "Season name cannot exceed 100 characters")]
         public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Start date is required")]
@@ -17,8 +17,8 @@ namespace FootballClubAPI.Models
         [Required(ErrorMessage = "End date is required")]
         public DateTime EndDate { get; set; }
 
-        [StringLength(100)]
-        public string? Competition { get; set; }
+        [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
+        public string? Description { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -28,6 +28,7 @@ namespace FootballClubAPI.Models
         public string UserId { get; set; } = string.Empty;
 
         public virtual User? User { get; set; }
+
         public ICollection<Match> Matches { get; set; } = new HashSet<Match>();
     }
 }

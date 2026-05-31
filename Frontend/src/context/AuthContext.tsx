@@ -8,8 +8,9 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string, role: string) => Promise<void>;
+  register: (firstName: string, lastName: string, email: string, password: string, confirmPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
 }
@@ -60,19 +61,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const register = useCallback(async (username: string, email: string, password: string, role: string) => {
+  const register = useCallback(async (firstName: string, lastName: string, email: string, password: string, confirmPassword: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response: AuthResponse = await authService.register({ username, email, password, role });
+      const response: AuthResponse = await authService.register({ firstName, lastName, email, password, confirmPassword });
       if (response.success) {
         setAccessToken(response.accessToken || null);
         setUser(response.user || null);
       } else {
         setError(response.message);
+        throw new Error(response.message);
       }
     } catch (err: any) {
       setError(err.message || 'Registration failed');
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -95,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading,
     error,
     isAuthenticated: !!accessToken && !!user,
+    isAdmin: user?.role === 'Admin',
     login,
     register,
     logout,

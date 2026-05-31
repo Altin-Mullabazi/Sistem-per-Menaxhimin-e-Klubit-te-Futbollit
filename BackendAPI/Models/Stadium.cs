@@ -28,12 +28,13 @@ namespace FootballClubAPI.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         [ForeignKey("User")]
-        public string UserId { get; set; } = string.Empty;
+        public string? UserId { get; set; }
 
         public int? ClubId { get; set; }
 
         // Navigation properties
         public virtual User? User { get; set; }
         public virtual Club? Club { get; set; }
+        public virtual ICollection<Match> Matches { get; set; } = new List<Match>();
     }
 }

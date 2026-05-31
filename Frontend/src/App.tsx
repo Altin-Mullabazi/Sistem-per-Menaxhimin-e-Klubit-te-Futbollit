@@ -5,6 +5,8 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Navigation } from './components/Navigation';
 import { Login } from './pages/Login';
 import Players from './pages/Players';
+import Matches from './pages/Matches';
+import SponsorsSeasons from './pages/SponsorsSeasons';
 import './styles/App.css';
 
 function App() {
@@ -22,6 +24,24 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Players />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/matches"
+                element={
+                  <ProtectedRoute>
+                    <Matches />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/sponsors-seasons"
+                element={
+                  <ProtectedRoute>
+                    <SponsorsSeasons />
                   </ProtectedRoute>
                 }
               />

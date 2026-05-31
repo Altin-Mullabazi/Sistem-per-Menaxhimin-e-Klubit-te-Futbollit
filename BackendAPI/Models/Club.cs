@@ -33,14 +33,20 @@ namespace FootballClubAPI.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         [ForeignKey("User")]
-        public string UserId { get; set; } = string.Empty;
+        public string? UserId { get; set; }
+
+        [ForeignKey("CreatedByUser")]
+        public string? CreatedById { get; set; }
 
         // Navigation properties
         public virtual User? User { get; set; }
+        public virtual ApplicationUser? CreatedByUser { get; set; }
         public virtual ICollection<Player> Players { get; set; } = new List<Player>();
         public virtual ICollection<Stadium> Stadiums { get; set; } = new List<Stadium>();
         public virtual ICollection<SponsorClub> SponsorClubs { get; set; } = new List<SponsorClub>();
         public virtual ICollection<ClubTrophy> ClubTrophies { get; set; } = new List<ClubTrophy>();
+        public virtual ICollection<Match> HomeMatches { get; set; } = new List<Match>();
+        public virtual ICollection<Match> AwayMatches { get; set; } = new List<Match>();
         public virtual ICollection<Transfer> OutgoingTransfers { get; set; } = new List<Transfer>();
         public virtual ICollection<Transfer> IncomingTransfers { get; set; } = new List<Transfer>();
         public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();

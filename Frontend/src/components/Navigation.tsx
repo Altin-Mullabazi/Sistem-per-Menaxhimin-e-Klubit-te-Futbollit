@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import '../styles/Navigation.css';
 
 export const Navigation: React.FC = () => {
@@ -20,14 +20,28 @@ export const Navigation: React.FC = () => {
         </div>
 
         {isAuthenticated && user && (
-          <div className="navbar-content">
-            <div className="navbar-user-info">
-              <span className="user-name">{user.username}</span>
+          <>
+            <div className="navbar-links">
+              <NavLink to="/players" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                Players
+              </NavLink>
+              <NavLink to="/matches" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                Matches
+              </NavLink>
+              <NavLink to="/sponsors-seasons" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                Sponsors & Seasons
+              </NavLink>
             </div>
-            <button className="btn btn-logout" onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
+            <div className="navbar-content">
+              <div className="navbar-user-info">
+                <span className="user-name">{user.username}</span>
+                <span className="user-role">{user.role || 'Fan'}</span>
+              </div>
+              <button className="btn btn-logout" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
+          </>
         )}
       </div>
     </nav>
