@@ -217,12 +217,41 @@ export interface PlayerStats {
   id: number;
   playerId: number;
   playerName: string;
-  minutesPlayed: number;
+  matchId: number;
+  matchDate: string;
   goalsScored: number;
   assists: number;
   yellowCards: number;
   redCards: number;
+  minutesPlayed: number;
   rating?: number;
+}
+
+export interface CreatePlayerStatsDto {
+  playerId: number;
+  matchId: number;
+  goalsScored: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+  minutesPlayed: number;
+}
+
+export interface UpdatePlayerStatsDto {
+  goalsScored: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+  minutesPlayed: number;
+}
+
+export interface TopScorer {
+  playerId: number;
+  playerName: string;
+  clubId?: number;
+  clubName?: string;
+  goalsScored: number;
+  assists: number;
 }
 
 export interface CreateMatchDto {
