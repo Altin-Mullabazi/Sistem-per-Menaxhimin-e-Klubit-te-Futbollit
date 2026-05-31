@@ -2,6 +2,7 @@ using FootballClubAPI.DTOs;
 using FootballClubAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FootballClubAPI.Controllers
 {
@@ -87,7 +88,8 @@ namespace FootballClubAPI.Controllers
 
             try
             {
-                var season = await _seasonService.CreateSeasonAsync(createSeasonDto);
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var season = await _seasonService.CreateSeasonAsync(createSeasonDto, currentUserId);
                 return CreatedAtAction(nameof(GetSeasonById), new { id = season.Id }, new { success = true, data = season, message = "Season created successfully" });
             }
             catch (InvalidOperationException ex)
@@ -129,6 +131,27 @@ namespace FootballClubAPI.Controllers
             {
                 _logger.LogError("Error updating season {Id}: {Message}", id, ex.Message);
                 return StatusCode(500, new { success = false, message = "An error occurred while updating the season" });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteSeason(int id)
+        {
+            try
+            {
+                var deleted = await _seasonService.DeleteSeasonAsync(id);
+                if (!deleted)
+                    return NotFound(new { success = false, message = "Season not found" });
+
+                return Ok(new { success = true, message = "Season deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error deleting season {Id}: {Message}", id, ex.Message);
+                return StatusCode(500, new { success = false, message = "An error occurred while deleting the season" });
             }
         }
     }

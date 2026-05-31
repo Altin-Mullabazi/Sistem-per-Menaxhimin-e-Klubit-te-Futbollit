@@ -1,4 +1,5 @@
 using FootballClubAPI.Models;
+using FootballClubAPI.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,8 @@ namespace FootballClubAPI.Data
     {
         public const string AdminRoleId = "3d8a2fec-a50f-4d6d-bb1c-b2caf3de9a91";
         public const string ManagerRoleId = "716b8f4c-443c-4858-9d67-b049f6b0a16f";
-        public const string FanRoleId = "f7a2609f-1ad6-46a8-a73d-8fbc7ed8f8c8";
+        public const string CoachRoleId = "1a7f9d2f-4f72-4e8b-9d34-6f0c0a7fd1b2";
+        public const string UserRoleId = "9b9d5f5f-6b34-4c7f-8b35-4d4f5fd6d3b8";
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -42,24 +44,46 @@ namespace FootballClubAPI.Data
                 new IdentityRole
                 {
                     Id = AdminRoleId,
-                    Name = "Admin",
-                    NormalizedName = "ADMIN",
+                    Name = RoleConstants.Admin,
+                    NormalizedName = RoleConstants.Admin.ToUpperInvariant(),
                     ConcurrencyStamp = AdminRoleId
                 },
                 new IdentityRole
                 {
                     Id = ManagerRoleId,
-                    Name = "Manager",
-                    NormalizedName = "MANAGER",
+                    Name = RoleConstants.Manager,
+                    NormalizedName = RoleConstants.Manager.ToUpperInvariant(),
                     ConcurrencyStamp = ManagerRoleId
                 },
                 new IdentityRole
                 {
-                    Id = FanRoleId,
-                    Name = "Fan",
-                    NormalizedName = "FAN",
-                    ConcurrencyStamp = FanRoleId
+                    Id = CoachRoleId,
+                    Name = RoleConstants.Coach,
+                    NormalizedName = RoleConstants.Coach.ToUpperInvariant(),
+                    ConcurrencyStamp = CoachRoleId
+                },
+                new IdentityRole
+                {
+                    Id = UserRoleId,
+                    Name = RoleConstants.User,
+                    NormalizedName = RoleConstants.User.ToUpperInvariant(),
+                    ConcurrencyStamp = UserRoleId
                 });
+
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.FirstName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.LastName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(user => user.Role)
+                .IsRequired()
+                .HasMaxLength(50);
 
             modelBuilder.Entity<ApplicationUser>()
                 .Property(user => user.FullName)
@@ -68,11 +92,11 @@ namespace FootballClubAPI.Data
 
             modelBuilder.Entity<ApplicationUser>()
                 .Property(user => user.CreatedAt)
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             modelBuilder.Entity<ApplicationUser>()
                 .Property(user => user.UpdatedAt)
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             modelBuilder.Entity<ApplicationUser>()
                 .Property(user => user.IsActive)
@@ -161,14 +185,144 @@ namespace FootballClubAPI.Data
             modelBuilder.Entity<Club>()
                 .HasOne(club => club.User)
                 .WithMany()
-                .HasForeignKey(club => club.UserId)
+                .HasForeignKey(c => c.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<Club>()
-                .HasOne(club => club.CreatedByUser)
-                .WithMany(user => user.Clubs)
-                .HasForeignKey(club => club.CreatedById)
-                .OnDelete(DeleteBehavior.SetNull);
+            // Stadium Configuration
+            modelBuilder.Entity<Stadium>()
+                .HasKey(s => s.Id);
+
+            modelBuilder.Entity<Stadium>()
+                .Property(s => s.Name)
+                .IsRequired();
+
+            modelBuilder.Entity<Stadium>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Sponsor Configuration
+            modelBuilder.Entity<Sponsor>()
+                .HasKey(s => s.Id);
+
+            modelBuilder.Entity<Sponsor>()
+                .Property(s => s.Name)
+                .IsRequired();
+
+            modelBuilder.Entity<Sponsor>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Trophy Configuration
+            modelBuilder.Entity<Trophy>()
+                .HasKey(t => t.Id);
+
+            modelBuilder.Entity<Trophy>()
+                .Property(t => t.Name)
+                .IsRequired();
+
+            modelBuilder.Entity<Trophy>()
+                .HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Season Configuration
+            modelBuilder.Entity<Season>()
+                .HasKey(s => s.Id);
+
+            modelBuilder.Entity<Season>()
+                .Property(s => s.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Season>()
+                .Property(s => s.StartDate)
+                .IsRequired();
+
+            modelBuilder.Entity<Season>()
+                .Property(s => s.EndDate)
+                .IsRequired();
+
+            modelBuilder.Entity<Season>()
+                .Property(s => s.Description)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<Season>()
+                .Property(s => s.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            modelBuilder.Entity<Season>()
+                .Property(s => s.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            modelBuilder.Entity<Season>()
+                .HasIndex(s => s.Name)
+                .IsUnique();
+
+            modelBuilder.Entity<Season>()
+                .HasIndex(s => s.StartDate);
+
+            modelBuilder.Entity<Season>()
+                .HasIndex(s => s.EndDate);
+
+            modelBuilder.Entity<Season>()
+                .HasMany(s => s.Matches)
+                .WithOne(m => m.Season)
+                .HasForeignKey(m => m.SeasonId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Season>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Season>()
+                .ToTable(tb => tb.HasCheckConstraint("CK_Seasons_StartBeforeEnd", "[StartDate] < [EndDate]"));
+
+            // SponsorClub Configuration (Junction Table)
+            modelBuilder.Entity<SponsorClub>()
+                .HasKey(sc => new { sc.SponsorId, sc.ClubId });
+
+            modelBuilder.Entity<SponsorClub>()
+                .HasOne(sc => sc.Sponsor)
+                .WithMany(s => s.SponsorClubs)
+                .HasForeignKey(sc => sc.SponsorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SponsorClub>()
+                .HasOne(sc => sc.Club)
+                .WithMany(c => c.SponsorClubs)
+                .HasForeignKey(sc => sc.ClubId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ClubTrophy Configuration (Junction Table)
+            modelBuilder.Entity<ClubTrophy>()
+                .HasKey(ct => new { ct.TrophyId, ct.ClubId });
+
+            modelBuilder.Entity<ClubTrophy>()
+                .HasOne(ct => ct.Trophy)
+                .WithMany(t => t.ClubTrophies)
+                .HasForeignKey(ct => ct.TrophyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ClubTrophy>()
+                .HasOne(ct => ct.Club)
+                .WithMany(c => c.ClubTrophies)
+                .HasForeignKey(ct => ct.ClubId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // RefreshToken Configuration
+            modelBuilder.Entity<RefreshToken>()
+                .HasKey(rt => rt.Id);
+
+            modelBuilder.Entity<RefreshToken>()
+                .Property(rt => rt.TokenHash)
+                .IsRequired();
 
             modelBuilder.Entity<Club>()
                 .HasMany(club => club.Players)
@@ -270,11 +424,11 @@ namespace FootballClubAPI.Data
 
             modelBuilder.Entity<Season>()
                 .Property(season => season.CreatedAt)
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             modelBuilder.Entity<Season>()
                 .Property(season => season.UpdatedAt)
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             modelBuilder.Entity<Season>()
                 .HasIndex(season => season.Name)

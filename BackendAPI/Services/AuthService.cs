@@ -3,8 +3,12 @@ using FootballClubAPI.DTOs;
 using FootballClubAPI.Helpers;
 using FootballClubAPI.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace FootballClubAPI.Services
 {
@@ -25,6 +29,14 @@ namespace FootballClubAPI.Services
 
         public AuthService(
             ApplicationDbContext context,
+            TokenHelper tokenHelper,
+            ILogger<AuthService> logger)
+            : this(context, CreateUserManager(context), tokenHelper, logger)
+        {
+        }
+
+        public AuthService(
+            ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             TokenHelper tokenHelper,
             ILogger<AuthService> logger)
@@ -39,16 +51,20 @@ namespace FootballClubAPI.Services
         {
             try
             {
-                var normalizedEmail = loginDto.Email.Trim().ToLowerInvariant();
+                var identifier = loginDto.Email.Trim();
+                var user = await _userManager.FindByEmailAsync(identifier);
 
-                var user = await _userManager.FindByEmailAsync(normalizedEmail);
+                if (user == null)
+                {
+                    user = await _userManager.FindByNameAsync(identifier);
+                }
 
                 if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
                 {
                     return new AuthResponseDto
                     {
                         Success = false,
-                        Message = "Invalid email or password"
+                        Message = "Invalid username/email or password"
                     };
                 }
 
@@ -62,7 +78,7 @@ namespace FootballClubAPI.Services
                 }
 
                 var roles = await _userManager.GetRolesAsync(user);
-                var primaryRole = roles.FirstOrDefault() ?? "Fan";
+                var primaryRole = roles.FirstOrDefault() ?? RoleConstants.User;
 
                 var accessToken = _tokenHelper.GenerateAccessToken(user.Id, primaryRole);
                 var refreshToken = _tokenHelper.GenerateRefreshToken();
@@ -102,7 +118,12 @@ namespace FootballClubAPI.Services
                         Id = user.Id,
                         Username = user.UserName ?? user.Email ?? string.Empty,
                         Email = user.Email ?? string.Empty,
-                        Role = primaryRole
+                        Role = primaryRole,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        FullName = user.FullName,
+                        CreatedAt = user.CreatedAt,
+                        UpdatedAt = user.UpdatedAt
                     }
                 };
             }
@@ -149,7 +170,7 @@ namespace FootballClubAPI.Services
                 }
 
                 var roles = await _userManager.GetRolesAsync(user);
-                var primaryRole = roles.FirstOrDefault() ?? "Fan";
+                var primaryRole = roles.FirstOrDefault() ?? RoleConstants.User;
 
                 
                 refreshTokenEntity.IsRevoked = true;
@@ -182,7 +203,12 @@ namespace FootballClubAPI.Services
                         Id = user.Id,
                         Username = user.UserName ?? user.Email ?? string.Empty,
                         Email = user.Email ?? string.Empty,
-                        Role = primaryRole
+                        Role = primaryRole,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        FullName = user.FullName,
+                        CreatedAt = user.CreatedAt,
+                        UpdatedAt = user.UpdatedAt
                     }
                 };
             }
@@ -257,6 +283,9 @@ namespace FootballClubAPI.Services
                 {
                     Email = normalizedEmail,
                     UserName = normalizedEmail,
+                    FirstName = request.FirstName.Trim(),
+                    LastName = request.LastName.Trim(),
+                    Role = RoleConstants.User,
                     FullName = fullName,
                     EmailConfirmed = false,
                     IsActive = true,
@@ -276,7 +305,7 @@ namespace FootballClubAPI.Services
                     };
                 }
 
-                var roleResult = await _userManager.AddToRoleAsync(newUser, "Fan");
+                var roleResult = await _userManager.AddToRoleAsync(newUser, RoleConstants.User);
                 if (!roleResult.Succeeded)
                 {
                     var roleErrors = string.Join("; ", roleResult.Errors.Select(error => error.Description));
@@ -284,7 +313,7 @@ namespace FootballClubAPI.Services
                 }
 
                 // Generate JWT tokens
-                var accessToken = _tokenHelper.GenerateAccessToken(newUser.Id, "Fan");
+                var accessToken = _tokenHelper.GenerateAccessToken(newUser.Id, RoleConstants.User);
                 var refreshToken = _tokenHelper.GenerateRefreshToken();
 
                 // Store refresh token in database
@@ -370,6 +399,39 @@ namespace FootballClubAPI.Services
                     await transaction.DisposeAsync();
                 }
             }
+        }
+
+        private static UserManager<ApplicationUser> CreateUserManager(ApplicationDbContext context)
+        {
+            var store = new UserStore<ApplicationUser>(context);
+            var options = Options.Create(new IdentityOptions
+            {
+                Password =
+                {
+                    RequiredLength = 8,
+                    RequireUppercase = true,
+                    RequireLowercase = true,
+                    RequireDigit = true,
+                    RequireNonAlphanumeric = true
+                },
+                User =
+                {
+                    RequireUniqueEmail = true
+                }
+            });
+
+            var services = new ServiceCollection().BuildServiceProvider();
+
+            return new UserManager<ApplicationUser>(
+                store,
+                options,
+                new BcryptPasswordHasher<ApplicationUser>(),
+                new[] { new UserValidator<ApplicationUser>() },
+                new[] { new PasswordValidator<ApplicationUser>() },
+                new UpperInvariantLookupNormalizer(),
+                new IdentityErrorDescriber(),
+                services,
+                NullLogger<UserManager<ApplicationUser>>.Instance);
         }
 
     }

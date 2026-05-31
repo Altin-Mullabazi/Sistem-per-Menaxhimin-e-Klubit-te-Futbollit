@@ -4,7 +4,9 @@ import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Navigation } from './components/Navigation';
 import { Login } from './pages/Login';
+import Dashboard from './pages/Dashboard';
 import Players from './pages/Players';
+import SponsorsSeasons from './pages/SponsorsSeasons';
 import './styles/App.css';
 
 function App() {
@@ -18,6 +20,15 @@ function App() {
               <Route path="/login" element={<Login />} />
 
               <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
                 path="/players"
                 element={
                   <ProtectedRoute>
@@ -26,7 +37,16 @@ function App() {
                 }
               />
 
-              <Route path="/" element={<Navigate to="/players" replace />} />
+              <Route
+                path="/sponsors-seasons"
+                element={
+                  <ProtectedRoute>
+                    <SponsorsSeasons />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>

@@ -62,6 +62,23 @@ namespace FootballClubAPI.Tests.Services
             _serviceProvider.Dispose();
         }
 
+        private void SeedRoles()
+        {
+            foreach (var roleName in new[] { "Admin", "Manager", "Coach", "User" })
+            {
+                if (!_context.Roles.Any(role => role.Name == roleName))
+                {
+                    _context.Roles.Add(new IdentityRole
+                    {
+                        Name = roleName,
+                        NormalizedName = roleName.ToUpperInvariant()
+                    });
+                }
+            }
+
+            _context.SaveChanges();
+        }
+
         /// <summary>
         /// Test: Valid registration returns success with user data and tokens
         /// </summary>
@@ -145,8 +162,9 @@ namespace FootballClubAPI.Tests.Services
             var userInDb = _context.Users.FirstOrDefault(u => u.Email == "hashtest@example.com");
             Assert.NotNull(userInDb);
             Assert.NotEqual(plainPassword, userInDb.PasswordHash);
-            Assert.True(await _userManager.CheckPasswordAsync(userInDb, plainPassword));
-        }
+var passwordHasher = new BcryptPasswordHasher<ApplicationUser>();
+var verifyResult = passwordHasher.VerifyHashedPassword(userInDb!, userInDb.PasswordHash!, plainPassword);
+Assert.Equal(PasswordVerificationResult.Success, verifyResult);
 
         /// <summary>
         /// Test: JWT tokens are issued after registration
@@ -242,10 +260,10 @@ namespace FootballClubAPI.Tests.Services
         }
 
         /// <summary>
-        /// Test: Default role is "Fan" for new registrations
+        /// Test: Default role is "User" for new registrations
         /// </summary>
         [Fact]
-        public async Task RegisterAsync_DefaultRoleIsFan()
+        public async Task RegisterAsync_DefaultRoleIsUser()
         {
             // Arrange
             var request = new RegisterRequest

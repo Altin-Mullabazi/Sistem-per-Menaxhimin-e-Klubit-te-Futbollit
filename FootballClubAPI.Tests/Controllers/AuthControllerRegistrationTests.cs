@@ -68,10 +68,21 @@ namespace FootballClubAPI.Tests.Controllers
             _controller = new AuthController(_authService, _validator, _controllerLoggerMock.Object);
         }
 
-        public void Dispose()
+        private void SeedRoles()
         {
-            _context.Dispose();
-            _serviceProvider.Dispose();
+            foreach (var roleName in new[] { "Admin", "Manager", "Coach", "User" })
+            {
+                if (!_context.Roles.Any(role => role.Name == roleName))
+                {
+                    _context.Roles.Add(new IdentityRole
+                    {
+                        Name = roleName,
+                        NormalizedName = roleName.ToUpperInvariant()
+                    });
+                }
+            }
+
+            _context.SaveChanges();
         }
 
         /// <summary>

@@ -20,13 +20,18 @@ namespace FootballClubAPI.Tests.Services
 
         private void SeedTestData(ApplicationDbContext context)
         {
-            var user = new User 
+            var user = new ApplicationUser 
             { 
                 Id = "test-user", 
-                Username = "testuser", 
+                UserName = "testuser", 
                 Email = "test@example.com",
-                PasswordHash = "hash",
-                Role = "Admin"
+                FirstName = "Test",
+                LastName = "User",
+                FullName = "Test User",
+                Role = "Admin",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             var club1 = new Club { Id = 1, Name = "Team A" };
