@@ -256,7 +256,7 @@ namespace FootballClubAPI.Tests.Services
             // Arrange
             var updateDto = new UpdateInjuryDto
             {
-                Status = "Recovered"
+                Status = InjuryStatus.Recovered
             };
 
             // Act
@@ -323,7 +323,7 @@ namespace FootballClubAPI.Tests.Services
             // Arrange
             var updateDto = new UpdateInjuryDto
             {
-                Status = "Recovered"
+                Status = InjuryStatus.Recovered
             };
 
             // Act

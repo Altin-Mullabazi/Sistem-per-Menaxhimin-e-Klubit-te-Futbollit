@@ -16,6 +16,8 @@ namespace FootballClubAPI.Services
 
         public async Task<PaginatedResponse<ContractDto>> GetContractsAsync(ContractQueryParameters parameters)
         {
+            NormalizePagination(parameters);
+
             var query = _context.Contracts
                 .Include(c => c.Player)
                 .Include(c => c.Club)
@@ -27,7 +29,17 @@ namespace FootballClubAPI.Services
                 query = query.Where(c => c.PlayerId == parameters.PlayerId.Value);
             }
 
-            if (parameters.IsActive.HasValue)
+            if (parameters.Days.HasValue)
+            {
+                if (parameters.Days < 1 || parameters.Days > 365)
+                    throw new ArgumentOutOfRangeException(nameof(parameters.Days), "Days must be between 1 and 365.");
+
+                var today = DateTime.UtcNow.Date;
+                var expiryDate = today.AddDays(parameters.Days.Value);
+
+                query = query.Where(c => c.Status == ContractStatus.Active && c.EndDate >= today && c.EndDate <= expiryDate);
+            }
+            else if (parameters.IsActive.HasValue)
             {
                 query = query.Where(c => c.Status == (parameters.IsActive.Value ? ContractStatus.Active : ContractStatus.Expired));
             }
@@ -62,6 +74,8 @@ namespace FootballClubAPI.Services
 
         public async Task<PaginatedResponse<ContractDto>> GetActiveContractsAsync(int page = 1, int pageSize = 10)
         {
+            (page, pageSize) = NormalizePagination(page, pageSize);
+
             var query = _context.Contracts
                 .Include(c => c.Player)
                 .Include(c => c.Club)
@@ -85,12 +99,17 @@ namespace FootballClubAPI.Services
 
         public async Task<PaginatedResponse<ContractDto>> GetExpiringContractsAsync(int days, int page = 1, int pageSize = 10)
         {
+            (page, pageSize) = NormalizePagination(page, pageSize);
+            if (days < 1 || days > 365)
+                throw new ArgumentOutOfRangeException(nameof(days), "Days must be between 1 and 365.");
+
             var expiryDate = DateTime.UtcNow.AddDays(days);
+            var today = DateTime.UtcNow.Date;
 
             var query = _context.Contracts
                 .Include(c => c.Player)
                 .Include(c => c.Club)
-                .Where(c => c.Status == ContractStatus.Active && c.EndDate <= expiryDate)
+                .Where(c => c.Status == ContractStatus.Active && c.EndDate >= today && c.EndDate <= expiryDate)
                 .OrderBy(c => c.EndDate);
 
             var totalCount = await query.CountAsync();
@@ -110,26 +129,20 @@ namespace FootballClubAPI.Services
 
         public async Task<ContractDto> CreateContractAsync(CreateContractDto createContractDto)
         {
+            await ValidateCreateAsync(createContractDto);
+
             // ✅ TRANSACTIONAL: Ensure atomic operation
             // Use transaction to guarantee only ONE active contract per player
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            await using var transaction = _context.Database.IsRelational()
+                ? await _context.Database.BeginTransactionAsync()
+                : null;
 
             try
             {
                 // Business logic: Ensure only one active contract per player
                 if (createContractDto.IsActive)
                 {
-                    // Find and deactivate any existing active contract
-                    var existingActiveContract = await _context.Contracts
-                        .FirstOrDefaultAsync(c => c.PlayerId == createContractDto.PlayerId && 
-                                                 c.Status == ContractStatus.Active);
-
-                    if (existingActiveContract != null)
-                    {
-                        existingActiveContract.Status = ContractStatus.Expired;
-                        existingActiveContract.UpdatedAt = DateTime.UtcNow;
-                        _context.Contracts.Update(existingActiveContract);
-                    }
+                    await DeactivateActiveContractsAsync(createContractDto.PlayerId);
                 }
 
                 // Create new contract
@@ -148,7 +161,10 @@ namespace FootballClubAPI.Services
 
                 _context.Contracts.Add(contract);
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                if (transaction != null)
+                {
+                    await transaction.CommitAsync();
+                }
 
                 // Load navigation properties
                 await _context.Entry(contract).Reference(c => c.Player).LoadAsync();
@@ -158,15 +174,23 @@ namespace FootballClubAPI.Services
             }
             catch
             {
-                await transaction.RollbackAsync();
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync();
+                }
                 throw;
             }
         }
 
         public async Task<ContractDto?> UpdateContractAsync(int id, UpdateContractDto updateContractDto)
         {
+            if (id < 1)
+                throw new ArgumentOutOfRangeException(nameof(id), "Contract ID must be a positive number.");
+
             // ✅ TRANSACTIONAL: Ensure atomic operation
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            await using var transaction = _context.Database.IsRelational()
+                ? await _context.Database.BeginTransactionAsync()
+                : null;
 
             try
             {
@@ -174,21 +198,12 @@ namespace FootballClubAPI.Services
                 if (contract == null)
                     return null;
 
-                // Business logic: Ensure only one active contract per player
-                if (updateContractDto.IsActive && contract.Status != ContractStatus.Active)
-                {
-                    // Need to deactivate any existing active contract for this player
-                    var existingActiveContract = await _context.Contracts
-                        .FirstOrDefaultAsync(c => c.PlayerId == contract.PlayerId && 
-                                                 c.Id != id &&
-                                                 c.Status == ContractStatus.Active);
+                ValidateUpdate(contract, updateContractDto);
 
-                    if (existingActiveContract != null)
-                    {
-                        existingActiveContract.Status = ContractStatus.Expired;
-                        existingActiveContract.UpdatedAt = DateTime.UtcNow;
-                        _context.Contracts.Update(existingActiveContract);
-                    }
+                // Business logic: Ensure only one active contract per player
+                if (updateContractDto.IsActive)
+                {
+                    await DeactivateActiveContractsAsync(contract.PlayerId, id);
                 }
 
                 contract.EndDate = updateContractDto.EndDate;
@@ -199,7 +214,10 @@ namespace FootballClubAPI.Services
 
                 _context.Contracts.Update(contract);
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                if (transaction != null)
+                {
+                    await transaction.CommitAsync();
+                }
 
                 // Load navigation properties
                 await _context.Entry(contract).Reference(c => c.Player).LoadAsync();
@@ -209,13 +227,19 @@ namespace FootballClubAPI.Services
             }
             catch
             {
-                await transaction.RollbackAsync();
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync();
+                }
                 throw;
             }
         }
 
         public async Task<bool> DeleteContractAsync(int id)
         {
+            if (id < 1)
+                throw new ArgumentOutOfRangeException(nameof(id), "Contract ID must be a positive number.");
+
             var contract = await _context.Contracts.FindAsync(id);
             if (contract == null)
                 return false;
@@ -224,6 +248,61 @@ namespace FootballClubAPI.Services
             await _context.SaveChangesAsync();
 
             return true;
+        }
+
+        private static void NormalizePagination(ContractQueryParameters parameters)
+        {
+            (parameters.Page, parameters.PageSize) = NormalizePagination(parameters.Page, parameters.PageSize);
+        }
+
+        private static (int Page, int PageSize) NormalizePagination(int page, int pageSize)
+        {
+            if (page < 1)
+                throw new ArgumentOutOfRangeException(nameof(page), "Page must be greater than 0.");
+
+            if (pageSize < 1 || pageSize > 100)
+                throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be between 1 and 100.");
+
+            return (page, pageSize);
+        }
+
+        private async Task ValidateCreateAsync(CreateContractDto createContractDto)
+        {
+            if (createContractDto.StartDate >= createContractDto.EndDate)
+                throw new ArgumentException("Start date must be before end date.");
+
+            if (createContractDto.Salary <= 0)
+                throw new ArgumentException("Salary must be greater than 0.");
+
+            if (!await _context.Players.AnyAsync(player => player.Id == createContractDto.PlayerId))
+                throw new ArgumentException("Player not found.");
+
+            if (!await _context.Clubs.AnyAsync(club => club.Id == createContractDto.ClubId))
+                throw new ArgumentException("Club not found.");
+        }
+
+        private static void ValidateUpdate(Contract contract, UpdateContractDto updateContractDto)
+        {
+            if (contract.StartDate >= updateContractDto.EndDate)
+                throw new ArgumentException("End date must be after start date.");
+
+            if (updateContractDto.Salary <= 0)
+                throw new ArgumentException("Salary must be greater than 0.");
+        }
+
+        private async Task DeactivateActiveContractsAsync(int playerId, int? exceptContractId = null)
+        {
+            var activeContracts = await _context.Contracts
+                .Where(c => c.PlayerId == playerId &&
+                            c.Status == ContractStatus.Active &&
+                            (!exceptContractId.HasValue || c.Id != exceptContractId.Value))
+                .ToListAsync();
+
+            foreach (var activeContract in activeContracts)
+            {
+                activeContract.Status = ContractStatus.Expired;
+                activeContract.UpdatedAt = DateTime.UtcNow;
+            }
         }
 
         private static ContractDto MapToDto(Contract contract)
