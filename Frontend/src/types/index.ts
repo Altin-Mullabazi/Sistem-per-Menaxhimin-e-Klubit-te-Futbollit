@@ -57,6 +57,11 @@ export interface User {
   username: string;
   email: string;
   role?: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AuthResponse {

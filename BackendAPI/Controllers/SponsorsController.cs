@@ -1,7 +1,11 @@
 using FootballClubAPI.DTOs;
+using FootballClubAPI.Data;
+using FootballClubAPI.Models;
 using FootballClubAPI.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace FootballClubAPI.Controllers
@@ -11,11 +15,19 @@ namespace FootballClubAPI.Controllers
     public class SponsorsController : ControllerBase
     {
         private readonly ISponsorService _sponsorService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<SponsorsController> _logger;
 
-        public SponsorsController(ISponsorService sponsorService, ILogger<SponsorsController> logger)
+        public SponsorsController(
+            ISponsorService sponsorService,
+            UserManager<ApplicationUser> userManager,
+            ApplicationDbContext context,
+            ILogger<SponsorsController> logger)
         {
             _sponsorService = sponsorService;
+            _userManager = userManager;
+            _context = context;
             _logger = logger;
         }
 
@@ -90,7 +102,8 @@ namespace FootballClubAPI.Controllers
             try
             {
                 var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var sponsor = await _sponsorService.CreateSponsorAsync(createSponsorDto, currentUserId);
+                var legacyUserId = await ResolveLegacyUserIdAsync(currentUserId);
+                var sponsor = await _sponsorService.CreateSponsorAsync(createSponsorDto, legacyUserId);
                 return CreatedAtAction(nameof(GetSponsorById), new { id = sponsor.Id }, new { success = true, data = sponsor, message = "Sponsor created successfully" });
             }
             catch (Exception ex)
@@ -150,6 +163,30 @@ namespace FootballClubAPI.Controllers
                 _logger.LogError("Error deleting sponsor {Id}: {Message}", id, ex.Message);
                 return StatusCode(500, new { success = false, message = "An error occurred while deleting the sponsor" });
             }
+        }
+
+        private async Task<string?> ResolveLegacyUserIdAsync(string? currentUserId)
+        {
+            if (string.IsNullOrWhiteSpace(currentUserId))
+            {
+                return await _context.LegacyUsers.Select(user => user.Id).FirstOrDefaultAsync();
+            }
+
+            var applicationUser = await _userManager.FindByIdAsync(currentUserId);
+            if (applicationUser != null)
+            {
+                var legacyUser = await _context.LegacyUsers.FirstOrDefaultAsync(user =>
+                    user.Id == applicationUser.Id ||
+                    user.Email == applicationUser.Email ||
+                    user.Username == applicationUser.UserName);
+
+                if (legacyUser != null)
+                {
+                    return legacyUser.Id;
+                }
+            }
+
+            return await _context.LegacyUsers.Select(user => user.Id).FirstOrDefaultAsync();
         }
     }
 }
