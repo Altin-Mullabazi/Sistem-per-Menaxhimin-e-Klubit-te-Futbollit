@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Navigation } from './components/Navigation';
 import { Login } from './pages/Login';
+import { Register } from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Clubs from './pages/Clubs';
 import Players from './pages/Players';
@@ -27,6 +28,7 @@ function App() {
           <main className="main-content">
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
               <Route
                 path="/dashboard"
