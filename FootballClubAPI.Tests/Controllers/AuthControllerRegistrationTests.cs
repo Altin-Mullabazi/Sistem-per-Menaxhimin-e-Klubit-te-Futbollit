@@ -13,13 +13,16 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace FootballClubAPI.Tests.Controllers
 {
-    public class AuthControllerRegistrationTests
+    public class AuthControllerRegistrationTests : IDisposable
     {
         private readonly ApplicationDbContext _context;
+        private readonly ServiceProvider _serviceProvider;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly TokenHelper _tokenHelper;
         private readonly Mock<ILogger<AuthService>> _authServiceLoggerMock;
         private readonly Mock<ILogger<AuthController>> _controllerLoggerMock;
@@ -29,12 +32,26 @@ namespace FootballClubAPI.Tests.Controllers
 
         public AuthControllerRegistrationTests()
         {
-            // Setup in-memory database
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: $"AuthControllerTestDb_{Guid.NewGuid()}")
-                .Options;
+            var services = new ServiceCollection();
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseInMemoryDatabase(databaseName: $"AuthControllerTestDb_{Guid.NewGuid()}"));
+            services.AddLogging();
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequiredLength = 8;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireDigit = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
-            _context = new ApplicationDbContext(options);
+            _serviceProvider = services.BuildServiceProvider();
+            _context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
+            _context.Database.EnsureCreated();
+            _userManager = _serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
             // Setup TokenHelper
             var configMock = new Mock<IConfiguration>();
@@ -44,8 +61,7 @@ namespace FootballClubAPI.Tests.Controllers
             _tokenHelper = new TokenHelper(configMock.Object);
 
             _authServiceLoggerMock = new Mock<ILogger<AuthService>>();
-            SeedRoles();
-            _authService = new AuthService(_context, _tokenHelper, _authServiceLoggerMock.Object);
+            _authService = new AuthService(_context, _userManager, _tokenHelper, _authServiceLoggerMock.Object);
 
             _validator = new RegisterRequestValidator();
             _controllerLoggerMock = new Mock<ILogger<AuthController>>();
