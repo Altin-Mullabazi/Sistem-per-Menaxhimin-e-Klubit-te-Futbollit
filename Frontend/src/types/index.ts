@@ -220,3 +220,79 @@ export interface RecentTransfer {
   toClubName: string;
   fee: string;
 }
+
+// Management-related types
+export interface Transfer {
+  id: number;
+  playerId: number;
+  playerName: string;
+  fromClubId?: number;
+  fromClubName?: string;
+  toClubId?: number;
+  toClubName?: string;
+  fee: number;
+  transferDate: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateTransferDto {
+  playerId: number;
+  fromClubId?: number;
+  toClubId?: number;
+  fee: number;
+  transferDate: string;
+}
+
+export interface UpdateTransferDto extends CreateTransferDto {}
+
+export interface Contract {
+  id: number;
+  playerId: number;
+  playerName: string;
+  clubId: number;
+  clubName: string;
+  salary: number;
+  startDate: string;
+  endDate: string;
+  status: string;
+  daysRemaining?: number;
+}
+
+export interface CreateContractDto {
+  playerId: number;
+  clubId: number;
+  salary: number;
+  startDate: string;
+  endDate: string;
+}
+
+export interface UpdateContractDto extends CreateContractDto {}
+
+export interface Injury {
+  id: number;
+  playerId: number;
+  playerName: string;
+  clubId?: number;
+  clubName?: string;
+  injuryType: string;
+  injuryDate: string;
+  recoveryDate?: string | null;
+  status: string;
+}
+
+export interface CreateInjuryDto {
+  playerId: number;
+  injuryType: string;
+  injuryDate: string;
+  recoveryDate?: string | null;
+}
+
+export interface UpdateInjuryDto extends CreateInjuryDto {
+  status?: string;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  pagination: Pagination;
+}

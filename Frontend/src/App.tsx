@@ -7,6 +7,7 @@ import { Login } from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Players from './pages/Players';
 import SponsorsSeasons from './pages/SponsorsSeasons';
+import Management from './pages/Management';
 import './styles/App.css';
 
 function App() {
@@ -42,6 +43,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <SponsorsSeasons />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/management"
+                element={
+                  <ProtectedRoute>
+                    <Management />
                   </ProtectedRoute>
                 }
               />
