@@ -51,7 +51,7 @@ export const Login: React.FC = () => {
 
   return (
     <div className="auth-container">
-      <div className="auth-box">
+      <div className="auth-box auth-box-login">
         <h1>⚽ Football Club</h1>
         <h2>Login</h2>
 

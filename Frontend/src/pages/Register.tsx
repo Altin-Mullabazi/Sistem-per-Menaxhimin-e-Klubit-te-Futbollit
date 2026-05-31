@@ -94,7 +94,7 @@ export const Register: React.FC = () => {
 
   return (
     <div className="auth-container">
-      <div className="auth-box">
+      <div className="auth-box auth-box-register">
         <h1>⚽ Football Club</h1>
         <h2>Register</h2>
 

@@ -21,7 +21,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, isLoading, onEdit, onD
     );
   }
 
-  if (players.length === 0) {
+  if (!players || players.length === 0) {
     return (
       <div className="empty-state">
         <div className="empty-icon">👥</div>
@@ -47,7 +47,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, isLoading, onEdit, onD
             </tr>
           </thead>
           <tbody>
-            {players.map((player) => (
+            {(players || []).map((player) => (
               <tr key={player.id} className="player-row">
                 <td className="player-name">
                   <strong>{player.firstName} {player.lastName}</strong>
@@ -91,7 +91,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, isLoading, onEdit, onD
       {/* Mobile Card View */}
       <div className="list-mobile">
         <div className="cards-grid">
-          {players.map((player) => (
+          {(players || []).map((player) => (
             <div key={player.id} className="player-card">
               <div className="card-content">
                 <h3 className="card-title">{player.firstName} {player.lastName}</h3>

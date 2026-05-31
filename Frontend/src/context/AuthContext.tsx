@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { User, AuthResponse } from '../types';
 import { authService } from '../services/authService';
+import { setAuthTokens, clearAuthTokens } from '../services/apiClient';
 
 interface AuthContextType {
   user: User | null;
@@ -18,8 +19,14 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  });
+
+  const [accessToken, setAccessToken] = useState<string | null>(() => {
+    return localStorage.getItem('accessToken');
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,6 +50,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  // Restore auth state from localStorage on mount
+  useEffect(() => {
+    const storedAccess = localStorage.getItem('accessToken');
+    const storedRefresh = localStorage.getItem('refreshToken');
+    const storedUser = localStorage.getItem('user');
+
+    if (storedAccess) {
+      setAccessToken(storedAccess);
+      setAuthTokens(storedAccess, storedRefresh || '');
+    }
+
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }, []);
+
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     setError(null);
@@ -51,6 +78,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (response.success) {
         setAccessToken(response.accessToken || null);
         setUser(response.user || null);
+
+        if (response.accessToken) {
+          localStorage.setItem('accessToken', response.accessToken);
+        }
+        if (response.refreshToken) {
+          localStorage.setItem('refreshToken', response.refreshToken);
+        }
+        if (response.user) {
+          localStorage.setItem('user', JSON.stringify(response.user));
+        }
+        // ensure apiClient has tokens
+        if (response.accessToken || response.refreshToken) {
+          setAuthTokens(response.accessToken || '', response.refreshToken || '');
+        }
       } else {
         setError(response.message);
       }
@@ -86,6 +127,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setAccessToken(null);
     setError(null);
+    // clear persisted tokens
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    clearAuthTokens();
   }, []);
 
   const clearError = useCallback(() => {

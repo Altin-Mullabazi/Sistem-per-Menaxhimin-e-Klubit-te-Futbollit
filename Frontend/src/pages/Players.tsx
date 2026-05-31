@@ -39,11 +39,13 @@ export const Players: React.FC = () => {
     setError(null);
     try {
       const response: PlayerListResponse = await playerService.getPlayers(page, pageSize, search, position, clubId);
-      setPlayers(response.data);
-      setTotalPages(response.totalPages);
-      setTotalCount(response.totalCount);
+      console.log('loadPlayers response:', response);
+      setPlayers(response?.data || []);
+      setTotalPages(response?.totalPages || 1);
+      setTotalCount(response?.totalCount || 0);
       setCurrentPage(page);
     } catch (err: any) {
+      console.error('Failed to load players:', err);
       setError(err.message || 'Failed to load players');
     } finally {
       setIsLoading(false);

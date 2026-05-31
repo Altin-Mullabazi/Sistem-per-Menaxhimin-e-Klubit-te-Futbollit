@@ -119,11 +119,18 @@
     left: 0;
     background: white;
     border-radius: 0.5rem;
-    min-width: 180px;
+    min-width: 140px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
     margin-top: 0.5rem;
+    padding: 6px 0;
+    border: 1px solid var(--border-color);
     animation: slideDown 0.2s ease;
     z-index: 200;
+}
+
+/* Hide empty dropdowns to avoid blank white boxes on touch/hover */
+.dropdown-content:empty {
+    display: none;
 }
 
 @keyframes slideDown {
@@ -141,7 +148,7 @@
     display: block;
     width: 100%;
     padding: 0.75rem 1rem;
-    color: var(--text-color);
+    color: var(--text-primary);
     text-decoration: none;
     transition: background-color 0.2s ease;
     border: none;
@@ -236,7 +243,7 @@
     display: block;
     width: 100%;
     padding: 0.75rem 1rem;
-    color: var(--text-color);
+    color: var(--text-primary);
     text-decoration: none;
     transition: background-color 0.2s ease;
     border: none;

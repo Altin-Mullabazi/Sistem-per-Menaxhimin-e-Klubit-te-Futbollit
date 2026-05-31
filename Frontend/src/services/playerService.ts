@@ -4,7 +4,7 @@ import { Player, CreatePlayerDto, UpdatePlayerDto, ApiResponse, PlayerListRespon
 export const playerService = {
   getAllPlayers: async (): Promise<Player[]> => {
     try {
-      const response = await apiClient.get('/players?pageSize=1000');
+      const response = await apiClient.get('/players?page=1&pageSize=100');
       return response.data.data?.data || response.data.data || [];
     } catch (error: any) {
       throw error.response?.data || { success: false, message: 'Failed to fetch players' };

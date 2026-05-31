@@ -55,7 +55,8 @@ export const clubService = {
 
   getAllClubs: async (): Promise<Club[]> => {
     try {
-      const response = await apiClient.get('/clubs?pageSize=1000');
+      // Use page=1 and pageSize=100 (backend allows up to 100)
+      const response = await apiClient.get('/clubs?page=1&pageSize=100');
       return response.data.data?.data || [];
     } catch (error: any) {
       throw error.response?.data || { success: false, message: 'Failed to fetch clubs' };
