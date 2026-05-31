@@ -57,25 +57,21 @@ namespace FootballClubAPI.Services
         public async Task<List<TopScorerDto>> GetTopScorersAsync(int limit = 10)
         {
             var stats = await _context.PlayerStats
-                .Include(ps => ps.Player!)
-                    .ThenInclude(p => p.Club!)
+                .Include(ps => ps.Player)
+                    .ThenInclude(p => p.Club)
                 .OrderByDescending(ps => ps.GoalsScored)
                 .ThenByDescending(ps => ps.Assists)
                 .Take(limit)
                 .ToListAsync();
 
-            return stats.Select(ps =>
+            return stats.Select(ps => new TopScorerDto
             {
-                var player = ps.Player;
-                return new TopScorerDto
-                {
-                    PlayerId = ps.PlayerId,
-                    PlayerName = player is null ? string.Empty : $"{player.FirstName} {player.LastName}",
-                    ClubId = player?.ClubId,
-                    ClubName = player?.Club?.Name,
-                    GoalsScored = ps.GoalsScored,
-                    Assists = ps.Assists
-                };
+                PlayerId = ps.PlayerId,
+                PlayerName = ps.Player != null ? $"{ps.Player!.FirstName} {ps.Player.LastName}" : string.Empty,
+                ClubId = ps.Player?.ClubId,
+                ClubName = ps.Player?.Club?.Name,
+                GoalsScored = ps.GoalsScored,
+                Assists = ps.Assists
             }).ToList();
         }
 

@@ -163,10 +163,8 @@ namespace FootballClubAPI.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(2, result.Data.Count); // Active and Recovering
-            Assert.All(result.Data, injury => Assert.True(
-                injury.Status == "Active" || injury.Status == "Recovering"
-            ));
+            Assert.Single(result.Data);
+            Assert.All(result.Data, injury => Assert.Equal("Active", injury.Status));
         }
 
         [Fact]
@@ -256,7 +254,7 @@ namespace FootballClubAPI.Tests.Services
             // Arrange
             var updateDto = new UpdateInjuryDto
             {
-                Status = "Recovered"
+                Status = InjuryStatus.Recovered
             };
 
             // Act
@@ -323,7 +321,7 @@ namespace FootballClubAPI.Tests.Services
             // Arrange
             var updateDto = new UpdateInjuryDto
             {
-                Status = "Recovered"
+                Status = InjuryStatus.Recovered
             };
 
             // Act

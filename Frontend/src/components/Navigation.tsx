@@ -22,6 +22,9 @@ export const Navigation: React.FC = () => {
         {isAuthenticated && user && (
           <>
             <div className="navbar-links">
+              <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                Dashboard
+              </NavLink>
               <NavLink to="/players" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
                 Players
               </NavLink>
@@ -31,6 +34,11 @@ export const Navigation: React.FC = () => {
               <NavLink to="/player-stats" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
                 Player Stats
               </NavLink>
+              {user?.role === 'Admin' && (
+                <NavLink to="/users" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                  Users
+                </NavLink>
+              )}
               <NavLink to="/sponsors-seasons" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
                 Sponsors & Seasons
               </NavLink>

@@ -5,27 +5,45 @@ using FootballClubAPI.DTOs;
 using FootballClubAPI.Helpers;
 using FootballClubAPI.Models;
 using FootballClubAPI.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace FootballClubAPI.Tests.Services
 {
-    public class AuthServiceRegistrationTests
+    public class AuthServiceRegistrationTests : IDisposable
     {
         private readonly ApplicationDbContext _context;
+        private readonly ServiceProvider _serviceProvider;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly TokenHelper _tokenHelper;
         private readonly Mock<ILogger<AuthService>> _loggerMock;
         private readonly AuthService _authService;
 
         public AuthServiceRegistrationTests()
         {
-            // Setup in-memory database
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: $"AuthServiceTestDb_{Guid.NewGuid()}")
-                .Options;
+            var services = new ServiceCollection();
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseInMemoryDatabase(databaseName: $"AuthServiceTestDb_{Guid.NewGuid()}"));
+            services.AddLogging();
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequiredLength = 8;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireDigit = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
-            _context = new ApplicationDbContext(options);
+            _serviceProvider = services.BuildServiceProvider();
+            _context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
+            _context.Database.EnsureCreated();
+            _userManager = _serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
             // Mock TokenHelper
             var configMock = new Mock<IConfiguration>();
@@ -35,7 +53,30 @@ namespace FootballClubAPI.Tests.Services
             _tokenHelper = new TokenHelper(configMock.Object);
 
             _loggerMock = new Mock<ILogger<AuthService>>();
-            _authService = new AuthService(_context, _tokenHelper, _loggerMock.Object);
+            _authService = new AuthService(_context, _userManager, _tokenHelper, _loggerMock.Object);
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
+            _serviceProvider.Dispose();
+        }
+
+        private void SeedRoles()
+        {
+            foreach (var roleName in new[] { "Admin", "Manager", "Coach", "User" })
+            {
+                if (!_context.Roles.Any(role => role.Name == roleName))
+                {
+                    _context.Roles.Add(new IdentityRole
+                    {
+                        Name = roleName,
+                        NormalizedName = roleName.ToUpperInvariant()
+                    });
+                }
+            }
+
+            _context.SaveChanges();
         }
 
         /// <summary>
@@ -94,8 +135,7 @@ namespace FootballClubAPI.Tests.Services
             Assert.True(result.Success);
             var userInDb = _context.Users.FirstOrDefault(u => u.Email == "dbtest@example.com");
             Assert.NotNull(userInDb);
-            Assert.Equal("Jane", userInDb.FirstName);
-            Assert.Equal("Smith", userInDb.LastName);
+            Assert.Equal("Jane Smith", userInDb.FullName);
         }
 
         /// <summary>
@@ -122,9 +162,9 @@ namespace FootballClubAPI.Tests.Services
             var userInDb = _context.Users.FirstOrDefault(u => u.Email == "hashtest@example.com");
             Assert.NotNull(userInDb);
             Assert.NotEqual(plainPassword, userInDb.PasswordHash);
-            // Verify password can be verified with BCrypt
-            Assert.True(_tokenHelper.VerifyPassword(plainPassword, userInDb.PasswordHash));
-        }
+var passwordHasher = new BcryptPasswordHasher<ApplicationUser>();
+var verifyResult = passwordHasher.VerifyHashedPassword(userInDb!, userInDb.PasswordHash!, plainPassword);
+Assert.Equal(PasswordVerificationResult.Success, verifyResult);
 
         /// <summary>
         /// Test: JWT tokens are issued after registration
@@ -220,10 +260,10 @@ namespace FootballClubAPI.Tests.Services
         }
 
         /// <summary>
-        /// Test: Default role is "Fan" for new registrations
+        /// Test: Default role is "User" for new registrations
         /// </summary>
         [Fact]
-        public async Task RegisterAsync_DefaultRoleIsFan()
+        public async Task RegisterAsync_DefaultRoleIsUser()
         {
             // Arrange
             var request = new RegisterRequest
@@ -241,7 +281,8 @@ namespace FootballClubAPI.Tests.Services
             // Assert
             var userInDb = _context.Users.FirstOrDefault(u => u.Email == "roletest@example.com");
             Assert.NotNull(userInDb);
-            Assert.Equal("Fan", userInDb.Role);
+            var roles = await _userManager.GetRolesAsync(userInDb);
+            Assert.Contains("Fan", roles);
         }
 
         /// <summary>
@@ -266,7 +307,7 @@ namespace FootballClubAPI.Tests.Services
             // Assert
             var userInDb = _context.Users.FirstOrDefault(u => u.Email == "emailverify@example.com");
             Assert.NotNull(userInDb);
-            Assert.False(userInDb.EmailVerified);
+            Assert.False(userInDb.EmailConfirmed);
         }
 
         /// <summary>

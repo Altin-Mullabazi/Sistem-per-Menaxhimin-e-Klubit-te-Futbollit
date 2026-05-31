@@ -2,6 +2,7 @@ using FootballClubAPI.DTOs;
 using FootballClubAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FootballClubAPI.Controllers
 {
@@ -87,7 +88,8 @@ namespace FootballClubAPI.Controllers
 
             try
             {
-                var season = await _seasonService.CreateSeasonAsync(createSeasonDto);
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var season = await _seasonService.CreateSeasonAsync(createSeasonDto, currentUserId);
                 return CreatedAtAction(nameof(GetSeasonById), new { id = season.Id }, new { success = true, data = season, message = "Season created successfully" });
             }
             catch (InvalidOperationException ex)
