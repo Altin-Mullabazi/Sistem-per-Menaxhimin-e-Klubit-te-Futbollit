@@ -6,6 +6,7 @@ import { Navigation } from './components/Navigation';
 import { Login } from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Players from './pages/Players';
+import Matches from './pages/Matches';
 import SponsorsSeasons from './pages/SponsorsSeasons';
 import Management from './pages/Management';
 import './styles/App.css';
@@ -34,6 +35,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Players />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/matches"
+                element={
+                  <ProtectedRoute>
+                    <Matches />
                   </ProtectedRoute>
                 }
               />

@@ -296,3 +296,70 @@ export interface PagedResult<T> {
   items: T[];
   pagination: Pagination;
 }
+export interface Club {
+  id: number;
+  name: string;
+}
+
+export interface Match {
+  id: number;
+  homeClubId: number;
+  homeClubName: string;
+  awayClubId: number;
+  awayClubName: string;
+  matchDate: string;
+  time?: string;
+  homeScore?: number;
+  awayScore?: number;
+  status: string;
+  competitionType?: string;
+  stadiumId: number;
+  stadiumName: string;
+  seasonId: number;
+  seasonName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MatchDetail extends Match {
+  storeLocation?: string;
+  events: MatchEvent[];
+  stats: PlayerStats[];
+}
+
+export interface MatchEvent {
+  id: number;
+  playerId: number;
+  playerName: string;
+  eventType: string;
+  minute: number;
+  description?: string;
+}
+
+export interface PlayerStats {
+  id: number;
+  playerId: number;
+  playerName: string;
+  minutesPlayed: number;
+  goalsScored: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+  rating?: number;
+}
+
+export interface CreateMatchDto {
+  homeClubId: number;
+  awayClubId: number;
+  stadiumId: number;
+  matchDate: string;
+  time?: string;
+  seasonId: number;
+  competitionType?: string;
+}
+
+export interface UpdateMatchDto {
+  homeScore?: number;
+  awayScore?: number;
+  status?: string;
+}
