@@ -24,12 +24,19 @@ namespace FootballClubAPI.Controllers
         /// </summary>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetContracts([FromQuery] ContractQueryParameters parameters)
         {
             try
             {
                 var result = await _contractService.GetContractsAsync(parameters);
                 return Ok(new { success = true, data = result, message = "Contracts retrieved successfully" });
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -43,11 +50,19 @@ namespace FootballClubAPI.Controllers
         /// </summary>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetContractById(int id)
         {
             try
             {
+                if (id < 1)
+                {
+                    return BadRequest(new { success = false, message = "Contract ID must be a positive number" });
+                }
+
                 var contract = await _contractService.GetContractByIdAsync(id);
                 if (contract == null)
                 {
@@ -67,12 +82,19 @@ namespace FootballClubAPI.Controllers
         /// </summary>
         [HttpGet("active")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetActiveContracts([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
                 var result = await _contractService.GetActiveContractsAsync(page, pageSize);
                 return Ok(new { success = true, data = result, message = "Active contracts retrieved successfully" });
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -86,12 +108,19 @@ namespace FootballClubAPI.Controllers
         /// </summary>
         [HttpGet("expiring")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetExpiringContracts([FromQuery] int days = 90, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
                 var result = await _contractService.GetExpiringContractsAsync(days, page, pageSize);
                 return Ok(new { success = true, data = result, message = "Expiring contracts retrieved successfully" });
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -104,9 +133,13 @@ namespace FootballClubAPI.Controllers
         /// Create a new contract
         /// </summary>
         [HttpPost]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Manager")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateContract([FromBody] CreateContractDto createContractDto)
         {
             try
@@ -131,6 +164,15 @@ namespace FootballClubAPI.Controllers
                 return CreatedAtAction(nameof(GetContractById), new { id = contract.Id },
                     new { success = true, data = contract, message = "Contract created successfully" });
             }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+            {
+                _logger.LogWarning($"Conflict creating contract: {ex.Message}");
+                return Conflict(new { success = false, message = "Contract conflicts with existing data" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError($"Error creating contract: {ex.Message}");
@@ -142,10 +184,14 @@ namespace FootballClubAPI.Controllers
         /// Update an existing contract
         /// </summary>
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Manager")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateContract(int id, [FromBody] UpdateContractDto updateContractDto)
         {
             try
@@ -153,6 +199,11 @@ namespace FootballClubAPI.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { success = false, message = "Invalid contract data", errors = ModelState });
+                }
+
+                if (id < 1)
+                {
+                    return BadRequest(new { success = false, message = "Contract ID must be a positive number" });
                 }
 
                 // Additional validation
@@ -169,6 +220,15 @@ namespace FootballClubAPI.Controllers
 
                 return Ok(new { success = true, data = contract, message = "Contract updated successfully" });
             }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+            {
+                _logger.LogWarning($"Conflict updating contract {id}: {ex.Message}");
+                return Conflict(new { success = false, message = "Contract conflicts with existing data" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError($"Error updating contract {id}: {ex.Message}");
@@ -182,11 +242,20 @@ namespace FootballClubAPI.Controllers
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteContract(int id)
         {
             try
             {
+                if (id < 1)
+                {
+                    return BadRequest(new { success = false, message = "Contract ID must be a positive number" });
+                }
+
                 var result = await _contractService.DeleteContractAsync(id);
                 if (!result)
                 {

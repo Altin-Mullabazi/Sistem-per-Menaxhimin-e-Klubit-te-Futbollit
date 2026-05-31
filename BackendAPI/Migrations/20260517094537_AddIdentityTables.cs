@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -80,7 +80,7 @@ namespace FootballClubAPI.Migrations
                 table: "Seasons",
                 type: "datetime2",
                 nullable: false,
-                defaultValueSql: "GETUTCDATE()",
+                defaultValueSql: "CURRENT_TIMESTAMP",
                 oldClrType: typeof(DateTime),
                 oldType: "datetime2");
 
@@ -89,7 +89,7 @@ namespace FootballClubAPI.Migrations
                 table: "Seasons",
                 type: "datetime2",
                 nullable: false,
-                defaultValueSql: "GETUTCDATE()",
+                defaultValueSql: "CURRENT_TIMESTAMP",
                 oldClrType: typeof(DateTime),
                 oldType: "datetime2");
 
@@ -184,8 +184,8 @@ namespace FootballClubAPI.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     FullName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -648,7 +648,7 @@ namespace FootballClubAPI.Migrations
                 nullable: false,
                 oldClrType: typeof(DateTime),
                 oldType: "datetime2",
-                oldDefaultValueSql: "GETUTCDATE()");
+                oldDefaultValueSql: "CURRENT_TIMESTAMP");
 
             migrationBuilder.AlterColumn<DateTime>(
                 name: "CreatedAt",
@@ -657,7 +657,7 @@ namespace FootballClubAPI.Migrations
                 nullable: false,
                 oldClrType: typeof(DateTime),
                 oldType: "datetime2",
-                oldDefaultValueSql: "GETUTCDATE()");
+                oldDefaultValueSql: "CURRENT_TIMESTAMP");
 
             migrationBuilder.AddColumn<string>(
                 name: "Competition",

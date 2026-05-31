@@ -74,7 +74,56 @@ namespace BackendAPI.Tests.Identity
 
             Assert.Contains("Admin", roleNames);
             Assert.Contains("Manager", roleNames);
-            Assert.Contains("Fan", roleNames);
+            Assert.Contains("User", roleNames);
+        }
+
+        [Fact]
+        public async Task DatabaseSeeder_ReconcilesLegacyFanRoleIntoUser()
+        {
+            using var provider = BuildProvider(Guid.NewGuid().ToString());
+            using var scope = provider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            await context.Database.EnsureCreatedAsync();
+
+            if (!await roleManager.RoleExistsAsync("Fan"))
+            {
+                await roleManager.CreateAsync(new IdentityRole { Name = "Fan", NormalizedName = "FAN" });
+            }
+
+            var legacyUser = new ApplicationUser
+            {
+                UserName = "legacyfan@test.com",
+                Email = "legacyfan@test.com",
+                FirstName = "Legacy",
+                LastName = "Fan",
+                FullName = "Legacy Fan",
+                Role = "Fan",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsActive = true
+            };
+
+            var createResult = await userManager.CreateAsync(legacyUser, "Pass@word1");
+            Assert.True(createResult.Succeeded);
+            await userManager.AddToRoleAsync(legacyUser, "Fan");
+
+            await DatabaseSeeder.SeedDataAsync(context, userManager, roleManager);
+
+            var roleNames = await context.Roles
+                .Select(role => role.Name)
+                .ToArrayAsync();
+
+            Assert.Equal(4, roleNames.Length);
+            Assert.DoesNotContain("Fan", roleNames);
+            Assert.Contains("User", roleNames);
+
+            var reloadedUser = await userManager.FindByEmailAsync("legacyfan@test.com");
+            Assert.NotNull(reloadedUser);
+            Assert.True(await userManager.IsInRoleAsync(reloadedUser!, "User"));
+            Assert.False(await userManager.IsInRoleAsync(reloadedUser!, "Fan"));
         }
 
         [Fact]
@@ -106,7 +155,7 @@ namespace BackendAPI.Tests.Identity
             {
                 UserName = "fan1@test.com",
                 Email = "fan1@test.com",
-                FullName = "Fan One",
+                FullName = "User One",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
