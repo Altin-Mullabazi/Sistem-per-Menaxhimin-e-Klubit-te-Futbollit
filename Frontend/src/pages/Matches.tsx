@@ -1,33 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Match, Pagination, Club } from '../types';
+import { Match, Pagination, Club, Season, Stadium } from '../types';
 import { matchService } from '../services/matchService';
+import { clubService } from '../services/clubService';
+import { seasonService } from '../services/seasonService';
+import { stadiumService } from '../services/stadiumService';
 import MatchTable from '../components/MatchTable';
 import MatchForm from '../components/MatchForm';
 import MatchFilters from '../components/MatchFilters';
 import '../styles/Matches.css';
 
-// Mock data - in real app, fetch from backend
-const MOCK_CLUBS: Club[] = [
-  { id: 1, name: 'Manchester United' },
-  { id: 2, name: 'Liverpool' },
-  { id: 3, name: 'Manchester City' },
-  { id: 4, name: 'Arsenal' },
-];
-
-const MOCK_SEASONS = [
-  { id: 1, name: '2025-2026', startDate: '2025-08-01', endDate: '2026-05-31' },
-  { id: 2, name: '2024-2025', startDate: '2024-08-01', endDate: '2025-05-31' },
-];
-
-const MOCK_STADIUMS = [
-  { id: 1, name: 'Old Trafford', city: 'Manchester' },
-  { id: 2, name: 'Anfield', city: 'Liverpool' },
-  { id: 3, name: 'Etihad Stadium', city: 'Manchester' },
-  { id: 4, name: 'Emirates Stadium', city: 'London' },
-];
-
-export const Matches: React.FC = () => {
+const Matches: React.FC = () => {
   const { user } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
@@ -44,10 +27,16 @@ export const Matches: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
 
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [stadiums, setStadiums] = useState<Stadium[]>([]);
+
   // Filters
   const [clubId, setClubId] = useState<number | undefined>();
   const [seasonId, setSeasonId] = useState<number | undefined>();
   const [status, setStatus] = useState<string | undefined>();
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
 
   const canCreate = user?.role === 'Admin' || user?.role === 'Manager';
   const canEdit = user?.role === 'Admin' || user?.role === 'Manager';
@@ -62,7 +51,9 @@ export const Matches: React.FC = () => {
         pagination.pageSize,
         clubId,
         seasonId,
-        status
+        status,
+        startDate || undefined,
+        endDate || undefined
       );
       setMatches(data.matches);
       setPagination(data.pagination);
@@ -73,9 +64,29 @@ export const Matches: React.FC = () => {
     }
   };
 
+  const loadFilterData = async () => {
+    try {
+      const [clubsData, seasonsData, stadiumsData] = await Promise.all([
+        clubService.getClubs(1, 100),
+        seasonService.getSeasons(1, 100),
+        stadiumService.getStadiums(1, 100),
+      ]);
+
+      setClubs(clubsData);
+      setSeasons(seasonsData.data);
+      setStadiums(stadiumsData);
+    } catch (err: any) {
+      console.warn('Unable to load filter data', err);
+    }
+  };
+
+  useEffect(() => {
+    loadFilterData();
+  }, []);
+
   useEffect(() => {
     loadMatches();
-  }, [pagination.page, pagination.pageSize, clubId, seasonId, status]);
+  }, [pagination.page, pagination.pageSize, clubId, seasonId, status, startDate, endDate]);
 
   const handleCreateClick = () => {
     if (!canCreate) {
@@ -152,6 +163,16 @@ export const Matches: React.FC = () => {
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
+  const handleStartDateChange = (newDate?: string) => {
+    setStartDate(newDate || '');
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  };
+
+  const handleEndDateChange = (newDate?: string) => {
+    setEndDate(newDate || '');
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  };
+
   const handlePageChange = (page: number) => {
     setPagination((prev) => ({ ...prev, page }));
   };
@@ -203,14 +224,18 @@ export const Matches: React.FC = () => {
         clubId={clubId}
         seasonId={seasonId}
         status={status}
+        startDate={startDate}
+        endDate={endDate}
         page={pagination.page}
         pageSize={pagination.pageSize}
         totalPages={pagination.totalPages}
-        clubs={MOCK_CLUBS}
-        seasons={MOCK_SEASONS}
+        clubs={clubs}
+        seasons={seasons}
         onClubChange={handleClubChange}
         onSeasonChange={handleSeasonChange}
         onStatusChange={handleStatusChange}
+        onStartDateChange={handleStartDateChange}
+        onEndDateChange={handleEndDateChange}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
       />
@@ -226,9 +251,9 @@ export const Matches: React.FC = () => {
       {showForm && (
         <MatchForm
           match={editingMatch}
-          clubs={MOCK_CLUBS}
-          seasons={MOCK_SEASONS}
-          stadiums={MOCK_STADIUMS}
+          clubs={clubs}
+          seasons={seasons}
+          stadiums={stadiums}
           isLoading={isLoading}
           onSubmit={handleFormSubmit}
           onClose={handleFormClose}

@@ -7,6 +7,8 @@ import { Login } from './pages/Login';
 import Players from './pages/Players';
 import Matches from './pages/Matches';
 import PlayerStatsPage from './pages/PlayerStatsPage';
+import Seasons from './pages/Seasons';
+import TrainingSessions from './pages/TrainingSessions';
 import SponsorsSeasons from './pages/SponsorsSeasons';
 import './styles/App.css';
 
@@ -52,6 +54,24 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <SponsorsSeasons />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/seasons"
+                element={
+                  <ProtectedRoute>
+                    <Seasons />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/training-sessions"
+                element={
+                  <ProtectedRoute>
+                    <TrainingSessions />
                   </ProtectedRoute>
                 }
               />

@@ -7,7 +7,7 @@ namespace FootballClubAPI.Services
 {
     public interface IMatchService
     {
-        Task<(List<MatchDto> matches, int totalCount)> GetMatchesAsync(int page = 1, int pageSize = 10, int? clubId = null, int? seasonId = null, string? status = null);
+        Task<(List<MatchDto> matches, int totalCount)> GetMatchesAsync(int page = 1, int pageSize = 10, int? clubId = null, int? seasonId = null, string? status = null, DateTime? startDate = null, DateTime? endDate = null);
         Task<MatchDetailDto?> GetMatchByIdAsync(int id);
         Task<List<MatchDto>> GetUpcomingMatchesAsync(int days = 7);
         Task<MatchDto> CreateMatchAsync(CreateMatchDto createMatchDto);
@@ -25,7 +25,7 @@ namespace FootballClubAPI.Services
             _context = context;
         }
 
-        public async Task<(List<MatchDto> matches, int totalCount)> GetMatchesAsync(int page = 1, int pageSize = 10, int? clubId = null, int? seasonId = null, string? status = null)
+        public async Task<(List<MatchDto> matches, int totalCount)> GetMatchesAsync(int page = 1, int pageSize = 10, int? clubId = null, int? seasonId = null, string? status = null, DateTime? startDate = null, DateTime? endDate = null)
         {
             var query = _context.Matches
                 .Include(m => m.HomeClub)
@@ -48,6 +48,17 @@ namespace FootballClubAPI.Services
             if (!string.IsNullOrEmpty(status))
             {
                 query = query.Where(m => m.Status == status);
+            }
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(m => m.MatchDate >= startDate.Value.Date);
+            }
+
+            if (endDate.HasValue)
+            {
+                var endOfDay = endDate.Value.Date.AddDays(1).AddTicks(-1);
+                query = query.Where(m => m.MatchDate <= endOfDay);
             }
 
             // Get total count

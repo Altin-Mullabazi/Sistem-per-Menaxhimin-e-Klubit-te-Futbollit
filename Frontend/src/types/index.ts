@@ -178,6 +178,41 @@ export interface Club {
   name: string;
 }
 
+export interface Stadium {
+  id: number;
+  name: string;
+  city: string;
+}
+
+export type TrainingType = 1 | 2 | 3 | 4 | 5;
+
+export interface TrainingSession {
+  id: number;
+  clubId: number;
+  clubName: string;
+  sessionDate: string;
+  duration: number;
+  type: TrainingType;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTrainingSessionDto {
+  clubId: number;
+  sessionDate: string;
+  duration: number;
+  type: TrainingType;
+  notes?: string;
+}
+
+export interface UpdateTrainingSessionDto {
+  sessionDate?: string;
+  duration?: number;
+  type?: TrainingType;
+  notes?: string;
+}
+
 export interface Match {
   id: number;
   homeClubId: number;
