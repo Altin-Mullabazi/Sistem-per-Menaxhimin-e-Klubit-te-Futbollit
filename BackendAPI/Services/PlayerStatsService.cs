@@ -7,8 +7,9 @@ namespace FootballClubAPI.Services
 {
     public interface IPlayerStatsService
     {
-        Task<(List<PlayerStatsListDto> stats, int totalCount)> GetPlayerStatsAsync(int page = 1, int pageSize = 10);
+        Task<(List<PlayerStatsListDto> stats, int totalCount)> GetPlayerStatsAsync(int page = 1, int pageSize = 10, int? playerId = null, int? matchId = null, string? sortBy = null);
         Task<List<TopScorerDto>> GetTopScorersAsync(int limit = 10);
+        Task<List<TopScorerDto>> GetTopAssistsAsync(int limit = 10);
         Task<PlayerStatsListDto> CreatePlayerStatsAsync(CreatePlayerStatsDto createDto);
         Task<PlayerStatsListDto?> UpdatePlayerStatsAsync(int id, UpdatePlayerStatsDto updateDto);
         Task<bool> DeletePlayerStatsAsync(int id);
@@ -23,18 +24,29 @@ namespace FootballClubAPI.Services
             _context = context;
         }
 
-        public async Task<(List<PlayerStatsListDto> stats, int totalCount)> GetPlayerStatsAsync(int page = 1, int pageSize = 10)
+        public async Task<(List<PlayerStatsListDto> stats, int totalCount)> GetPlayerStatsAsync(int page = 1, int pageSize = 10, int? playerId = null, int? matchId = null, string? sortBy = null)
         {
             var query = _context.PlayerStats
                 .Include(ps => ps.Player)
                 .Include(ps => ps.Match)
                 .AsQueryable();
 
+            if (playerId.HasValue)
+                query = query.Where(ps => ps.PlayerId == playerId.Value);
+
+            if (matchId.HasValue)
+                query = query.Where(ps => ps.MatchId == matchId.Value);
+
+            query = sortBy?.ToLowerInvariant() switch
+            {
+                "assists" => query.OrderByDescending(ps => ps.Assists).ThenByDescending(ps => ps.GoalsScored),
+                "goals" => query.OrderByDescending(ps => ps.GoalsScored).ThenByDescending(ps => ps.Assists),
+                _ => query.OrderByDescending(ps => ps.GoalsScored).ThenByDescending(ps => ps.Assists),
+            };
+
             var totalCount = await query.CountAsync();
 
             var stats = await query
-                .OrderByDescending(ps => ps.GoalsScored)
-                .ThenByDescending(ps => ps.Assists)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -60,6 +72,31 @@ namespace FootballClubAPI.Services
                 ClubName = ps.Player?.Club?.Name,
                 GoalsScored = ps.GoalsScored,
                 Assists = ps.Assists
+            }).ToList();
+        }
+
+        public async Task<List<TopScorerDto>> GetTopAssistsAsync(int limit = 10)
+        {
+            var stats = await _context.PlayerStats
+                .Include(ps => ps.Player!)
+                    .ThenInclude(p => p.Club!)
+                .OrderByDescending(ps => ps.Assists)
+                .ThenByDescending(ps => ps.GoalsScored)
+                .Take(limit)
+                .ToListAsync();
+
+            return stats.Select(ps =>
+            {
+                var player = ps.Player;
+                return new TopScorerDto
+                {
+                    PlayerId = ps.PlayerId,
+                    PlayerName = player is null ? string.Empty : $"{player.FirstName} {player.LastName}",
+                    ClubId = player?.ClubId,
+                    ClubName = player?.Club?.Name,
+                    GoalsScored = ps.GoalsScored,
+                    Assists = ps.Assists
+                };
             }).ToList();
         }
 

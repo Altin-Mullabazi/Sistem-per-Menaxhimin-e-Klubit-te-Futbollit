@@ -178,6 +178,101 @@ export interface ApiResponse<T> {
   message: string;
 }
 
+export interface Club {
+  id: number;
+  name: string;
+}
+
+export interface Match {
+  id: number;
+  homeClubId: number;
+  homeClubName: string;
+  awayClubId: number;
+  awayClubName: string;
+  matchDate: string;
+  time?: string;
+  homeScore?: number;
+  awayScore?: number;
+  status: string;
+  competitionType?: string;
+  stadiumId: number;
+  stadiumName: string;
+  seasonId: number;
+  seasonName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MatchDetail extends Match {
+  storeLocation?: string;
+  events: MatchEvent[];
+  stats: PlayerStats[];
+}
+
+export interface MatchEvent {
+  id: number;
+  playerId: number;
+  playerName: string;
+  eventType: string;
+  minute: number;
+  description?: string;
+}
+
+export interface PlayerStats {
+  id: number;
+  playerId: number;
+  playerName: string;
+  matchId: number;
+  matchDate: string;
+  goalsScored: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+  minutesPlayed: number;
+  rating?: number;
+}
+
+export interface CreatePlayerStatsDto {
+  playerId: number;
+  matchId: number;
+  goalsScored: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+  minutesPlayed: number;
+}
+
+export interface UpdatePlayerStatsDto {
+  goalsScored: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+  minutesPlayed: number;
+}
+
+export interface TopScorer {
+  playerId: number;
+  playerName: string;
+  clubId?: number;
+  clubName?: string;
+  goalsScored: number;
+  assists: number;
+}
+
+export interface CreateMatchDto {
+  homeClubId: number;
+  awayClubId: number;
+  stadiumId: number;
+  matchDate: string;
+  time?: string;
+  seasonId: number;
+  competitionType?: string;
+}
+
+export interface UpdateMatchDto {
+  homeScore?: number;
+  awayScore?: number;
+  status?: string;
 export interface DashboardSummary {
   totalClubs: number;
   totalPlayers: number;

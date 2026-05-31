@@ -28,6 +28,12 @@ export const Navigation: React.FC = () => {
               <NavLink to="/players" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
                 Players
               </NavLink>
+              <NavLink to="/matches" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                Matches
+              </NavLink>
+              <NavLink to="/player-stats" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                Player Stats
+              </NavLink>
               {user?.role === 'Admin' && (
                 <NavLink to="/users" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
                   Users
