@@ -49,13 +49,23 @@ namespace FootballClubAPI.Services
             return season == null ? null : MapToDto(season);
         }
 
-        public async Task<SeasonDto> CreateSeasonAsync(CreateSeasonDto createSeasonDto)
+        public async Task<SeasonDto> CreateSeasonAsync(CreateSeasonDto createSeasonDto, string? userId = null)
         {
             _logger.LogInformation("Creating season {SeasonName}", createSeasonDto.Name);
 
             ValidateDateRange(createSeasonDto.StartDate, createSeasonDto.EndDate);
             await EnsureUniqueNameAsync(createSeasonDto.Name);
             await EnsureNoOverlappingDatesAsync(createSeasonDto.StartDate, createSeasonDto.EndDate);
+
+            if (string.IsNullOrWhiteSpace(userId) && _context.Database.IsRelational())
+            {
+                userId = await _context.LegacyUsers.Select(user => user.Id).FirstOrDefaultAsync();
+            }
+
+            if (string.IsNullOrWhiteSpace(userId) && _context.Database.IsRelational())
+            {
+                throw new InvalidOperationException("Unable to resolve an owner user for the season");
+            }
 
             var season = new Season
             {
@@ -64,7 +74,8 @@ namespace FootballClubAPI.Services
                 EndDate = createSeasonDto.EndDate,
                 Description = string.IsNullOrWhiteSpace(createSeasonDto.Description) ? null : createSeasonDto.Description.Trim(),
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                UserId = userId ?? string.Empty
             };
 
             _context.Seasons.Add(season);

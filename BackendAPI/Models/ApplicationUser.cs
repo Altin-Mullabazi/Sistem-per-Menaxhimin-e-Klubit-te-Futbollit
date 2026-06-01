@@ -15,7 +15,7 @@ namespace FootballClubAPI.Models
 
         [Required]
         [StringLength(50)]
-        public string Role { get; set; } = "Fan";
+        public string Role { get; set; } = "User";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

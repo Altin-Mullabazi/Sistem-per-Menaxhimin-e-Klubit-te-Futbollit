@@ -42,7 +42,7 @@ namespace BackendAPI.Tests.Users
 
         private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
         {
-            foreach (var roleName in new[] { "Admin", "Manager", "Fan" })
+            foreach (var roleName in new[] { "Admin", "Manager", "Coach", "User" })
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
                 {
@@ -92,9 +92,9 @@ namespace BackendAPI.Tests.Users
             await context.Database.EnsureCreatedAsync();
             await SeedRolesAsync(roleManager);
 
-            var oldest = await CreateUserAsync(context, userManager, "oldest@test.com", "Old", "User", "Fan", DateTime.UtcNow.AddDays(-3));
-            var middle = await CreateUserAsync(context, userManager, "middle@test.com", "Middle", "User", "Fan", DateTime.UtcNow.AddDays(-2));
-            var newest = await CreateUserAsync(context, userManager, "newest@test.com", "Newest", "User", "Fan", DateTime.UtcNow.AddDays(-1));
+            var oldest = await CreateUserAsync(context, userManager, "oldest@test.com", "Old", "User", "User", DateTime.UtcNow.AddDays(-3));
+            var middle = await CreateUserAsync(context, userManager, "middle@test.com", "Middle", "User", "User", DateTime.UtcNow.AddDays(-2));
+            var newest = await CreateUserAsync(context, userManager, "newest@test.com", "Newest", "User", "User", DateTime.UtcNow.AddDays(-1));
 
             var service = scope.ServiceProvider.GetRequiredService<IUserService>();
             var result = await service.GetUsersAsync(page: 1, pageSize: 2);
@@ -119,8 +119,8 @@ namespace BackendAPI.Tests.Users
             await context.Database.EnsureCreatedAsync();
             await SeedRolesAsync(roleManager);
 
-            var target = await CreateUserAsync(context, userManager, "maria.rossi@test.com", "Maria", "Rossi", "Fan", DateTime.UtcNow);
-            await CreateUserAsync(context, userManager, "john.smith@test.com", "John", "Smith", "Fan", DateTime.UtcNow.AddHours(-1));
+            var target = await CreateUserAsync(context, userManager, "maria.rossi@test.com", "Maria", "Rossi", "User", DateTime.UtcNow);
+            await CreateUserAsync(context, userManager, "john.smith@test.com", "John", "Smith", "User", DateTime.UtcNow.AddHours(-1));
 
             var service = scope.ServiceProvider.GetRequiredService<IUserService>();
             var result = await service.GetUsersAsync(search: "MARIA");
@@ -147,7 +147,7 @@ namespace BackendAPI.Tests.Users
                 Password = "Pass@word1",
                 FirstName = "Create",
                 LastName = "User",
-                Role = "Fan"
+                Role = "User"
             });
 
             Assert.True(result.Result.Succeeded);
@@ -155,12 +155,12 @@ namespace BackendAPI.Tests.Users
             Assert.Equal("create@test.com", result.User!.Email);
             Assert.Equal("Create", result.User.FirstName);
             Assert.Equal("User", result.User.LastName);
-            Assert.Equal("Fan", result.User.Role);
+            Assert.Equal("User", result.User.Role);
 
             var created = await context.Users.FirstOrDefaultAsync(user => user.Email == "create@test.com");
             Assert.NotNull(created);
             var roles = await scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>().GetRolesAsync(created!);
-            Assert.Contains("Fan", roles);
+            Assert.Contains("User", roles);
         }
 
         [Fact]
@@ -181,7 +181,7 @@ namespace BackendAPI.Tests.Users
                 Password = "Pass@word1",
                 FirstName = "First",
                 LastName = "User",
-                Role = "Fan"
+                Role = "User"
             });
 
             var second = await service.CreateUserAsync(new CreateUserDto
@@ -190,7 +190,7 @@ namespace BackendAPI.Tests.Users
                 Password = "Pass@word1",
                 FirstName = "Second",
                 LastName = "User",
-                Role = "Fan"
+                Role = "User"
             });
 
             Assert.True(first.Result.Succeeded);
@@ -233,7 +233,7 @@ namespace BackendAPI.Tests.Users
             await context.Database.EnsureCreatedAsync();
             await SeedRolesAsync(roleManager);
 
-            var existing = await CreateUserAsync(context, userManager, "update@test.com", "Old", "Name", "Fan", DateTime.UtcNow.AddDays(-1));
+            var existing = await CreateUserAsync(context, userManager, "update@test.com", "Old", "Name", "User", DateTime.UtcNow.AddDays(-1));
             var service = scope.ServiceProvider.GetRequiredService<IUserService>();
 
             var result = await service.UpdateUserAsync(existing.Id, new UpdateUserDto
@@ -287,7 +287,7 @@ namespace BackendAPI.Tests.Users
             await context.Database.EnsureCreatedAsync();
             await SeedRolesAsync(roleManager);
 
-            var existing = await CreateUserAsync(context, userManager, "delete@test.com", "Delete", "Me", "Fan", DateTime.UtcNow);
+            var existing = await CreateUserAsync(context, userManager, "delete@test.com", "Delete", "Me", "User", DateTime.UtcNow);
             var service = scope.ServiceProvider.GetRequiredService<IUserService>();
 
             var result = await service.DeleteUserAsync(existing.Id);

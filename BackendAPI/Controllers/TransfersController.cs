@@ -47,10 +47,17 @@ namespace FootballClubAPI.Controllers
             {
                 // Validate pagination
                 if (page < 1 || pageSize < 1 || pageSize > 100)
-                    return BadRequest(new 
-                    { 
-                        success = false, 
-                        message = "Invalid pagination: page >= 1, pageSize 1-100" 
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Invalid pagination: page >= 1, pageSize 1-100"
+                    });
+
+                if (fromDate.HasValue && toDate.HasValue && fromDate.Value.Date > toDate.Value.Date)
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "fromDate must be before or equal to toDate"
                     });
 
                 var (transfers, totalCount) = await _transferService.GetTransfersAsync(
@@ -180,7 +187,7 @@ namespace FootballClubAPI.Controllers
         /// Validation: FromClubId ≠ ToClubId, TransferFee >= 0
         /// </summary>
         [HttpPost]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Manager")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -228,7 +235,7 @@ namespace FootballClubAPI.Controllers
         /// Update transfer (TransferFee and Type only)
         /// </summary>
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Manager")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

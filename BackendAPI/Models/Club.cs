@@ -33,7 +33,7 @@ namespace FootballClubAPI.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         [ForeignKey("User")]
-        public string? UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
 
         [ForeignKey("CreatedByUser")]
         public string? CreatedById { get; set; }

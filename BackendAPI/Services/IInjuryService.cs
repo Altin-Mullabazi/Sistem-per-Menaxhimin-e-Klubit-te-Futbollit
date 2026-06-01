@@ -42,6 +42,8 @@ namespace FootballClubAPI.Services
             string? status = null,
             string sortBy = "date")
         {
+            ValidatePagination(page, pageSize);
+
             var query = _context.Injuries.Include(i => i.Player).AsQueryable();
 
             // Apply filters
@@ -51,7 +53,13 @@ namespace FootballClubAPI.Services
             if (!string.IsNullOrEmpty(status))
             {
                 if (Enum.TryParse<InjuryStatus>(status, ignoreCase: true, out var injuryStatus))
+                {
                     query = query.Where(i => i.Status == injuryStatus);
+                }
+                else
+                {
+                    throw new ArgumentException("Status must be Active, Recovering, or Recovered");
+                }
             }
 
             // Apply sorting (default: newest first)
@@ -86,11 +94,36 @@ namespace FootballClubAPI.Services
 
         public async Task<PaginatedInjuryResponse> GetActiveInjuriesAsync(int page = 1, int pageSize = 10)
         {
-            return await GetInjuriesAsync(
-                page: page,
-                pageSize: pageSize,
-                status: "Active"
-            );
+            ValidatePagination(page, pageSize);
+
+            var query = _context.Injuries
+                .Include(i => i.Player)
+                .Where(i => i.Status != InjuryStatus.Recovered)
+                .OrderByDescending(i => i.InjuryDate);
+
+            var totalItems = await query.CountAsync();
+            var injuries = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PaginatedInjuryResponse
+            {
+                Data = injuries.Select(MapToDto).ToList(),
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize)
+            };
+        }
+
+        private static void ValidatePagination(int page, int pageSize)
+        {
+            if (page < 1)
+                throw new ArgumentOutOfRangeException(nameof(page), "Page must be greater than 0.");
+
+            if (pageSize < 1 || pageSize > 100)
+                throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be between 1 and 100.");
         }
 
         public async Task<InjuryDto?> GetInjuryByIdAsync(int id)
@@ -152,12 +185,9 @@ namespace FootballClubAPI.Services
             }
 
             // Update Status if provided
-            if (!string.IsNullOrEmpty(updateInjuryDto.Status))
+            if (updateInjuryDto.Status.HasValue)
             {
-                if (Enum.TryParse<InjuryStatus>(updateInjuryDto.Status, ignoreCase: true, out var injuryStatus))
-                    injury.Status = injuryStatus;
-                else
-                    throw new ArgumentException($"Invalid status: {updateInjuryDto.Status}");
+                injury.Status = updateInjuryDto.Status.Value;
             }
 
             // Update Notes if provided

@@ -39,11 +39,15 @@ namespace FootballClubAPI.Controllers
         {
             try
             {
-                if (page < 1 || pageSize < 1)
-                    return BadRequest(new { success = false, message = "Page and pageSize must be greater than 0" });
+                if (page < 1 || pageSize < 1 || pageSize > 100)
+                    return BadRequest(new { success = false, message = "Invalid pagination: page >= 1, pageSize 1-100" });
 
                 var result = await _injuryService.GetInjuriesAsync(page, pageSize, playerId, status, sortBy);
                 return Ok(new { success = true, data = result, message = "Injuries retrieved successfully" });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -60,14 +64,15 @@ namespace FootballClubAPI.Controllers
         [HttpGet("active")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetActiveInjuries(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
-                if (page < 1 || pageSize < 1)
-                    return BadRequest(new { success = false, message = "Page and pageSize must be greater than 0" });
+                if (page < 1 || pageSize < 1 || pageSize > 100)
+                    return BadRequest(new { success = false, message = "Invalid pagination: page >= 1, pageSize 1-100" });
 
                 var result = await _injuryService.GetActiveInjuriesAsync(page, pageSize);
                 return Ok(new { success = true, data = result, message = "Active injuries retrieved successfully" });
@@ -84,11 +89,16 @@ namespace FootballClubAPI.Controllers
         /// </summary>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetInjuryById(int id)
         {
             try
             {
+                if (id < 1)
+                    return BadRequest(new { success = false, message = "Injury ID must be a positive number" });
+
                 var injury = await _injuryService.GetInjuryByIdAsync(id);
                 if (injury == null)
                     return NotFound(new { success = false, message = "Injury not found" });
@@ -106,7 +116,7 @@ namespace FootballClubAPI.Controllers
         /// Create a new injury
         /// </summary>
         [HttpPost]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Manager")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -138,7 +148,7 @@ namespace FootballClubAPI.Controllers
         /// Update an injury
         /// </summary>
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Manager")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -151,6 +161,9 @@ namespace FootballClubAPI.Controllers
 
             try
             {
+                if (id < 1)
+                    return BadRequest(new { success = false, message = "Injury ID must be a positive number" });
+
                 var injury = await _injuryService.UpdateInjuryAsync(id, updateInjuryDto);
                 if (injury == null)
                     return NotFound(new { success = false, message = "Injury not found" });
@@ -175,6 +188,7 @@ namespace FootballClubAPI.Controllers
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -182,6 +196,9 @@ namespace FootballClubAPI.Controllers
         {
             try
             {
+                if (id < 1)
+                    return BadRequest(new { success = false, message = "Injury ID must be a positive number" });
+
                 var result = await _injuryService.DeleteInjuryAsync(id);
                 if (!result)
                     return NotFound(new { success = false, message = "Injury not found" });
