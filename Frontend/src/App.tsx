@@ -10,6 +10,9 @@ import Clubs from './pages/Clubs';
 import Players from './pages/Players';
 import Matches from './pages/Matches';
 import PlayerStatsPage from './pages/PlayerStatsPage';
+import Seasons from './pages/Seasons';
+import TrainingSessions from './pages/TrainingSessions';
+import StaffPage from './pages/StaffPage';
 import UsersPage from './pages/UsersPage';
 import SponsorsSeasons from './pages/SponsorsSeasons';
 import Transfers from './pages/Transfers';
@@ -17,6 +20,7 @@ import Contracts from './pages/Contracts';
 import Injuries from './pages/Injuries';
 import Stadiums from './pages/Stadiums';
 import Profile from './pages/Profile';
+import Management from './pages/Management';
 import './styles/App.css';
 
 function App() {
@@ -134,6 +138,42 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Profile />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/seasons"
+                element={
+                  <ProtectedRoute>
+                    <Seasons />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/training-sessions"
+                element={
+                  <ProtectedRoute>
+                    <TrainingSessions />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/staff"
+                element={
+                  <ProtectedRoute>
+                    <StaffPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/management"
+                element={
+                  <ProtectedRoute>
+                    <Management />
                   </ProtectedRoute>
                 }
               />

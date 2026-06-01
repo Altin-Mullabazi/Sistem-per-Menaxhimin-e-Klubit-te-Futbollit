@@ -32,13 +32,17 @@ export const matchService = {
     pageSize: number = 10,
     clubId?: number,
     seasonId?: number,
-    status?: string
+    status?: string,
+    startDate?: string,
+    endDate?: string
   ): Promise<{ matches: Match[]; pagination: Pagination }> {
     try {
       const params: any = { page, pageSize };
       if (clubId) params.clubId = clubId;
       if (seasonId) params.seasonId = seasonId;
       if (status) params.status = status;
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
 
       const response = await apiClient.get<MatchListResponse>('/matches', { params });
       if (response.data.success) {
