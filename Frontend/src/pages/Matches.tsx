@@ -15,10 +15,10 @@ import '../styles/Matches.css';
 const Matches: React.FC = () => {
 // Mock data - in real app, fetch from backend
 const MOCK_CLUBS: Club[] = [
-  { id: 1, name: 'Manchester United' },
-  { id: 2, name: 'Liverpool' },
-  { id: 3, name: 'Manchester City' },
-  { id: 4, name: 'Arsenal' },
+  { id: 1, name: 'Manchester United', city: 'Manchester', foundedYear: 1878, playerCount: 25, createdAt: '', updatedAt: '' },
+  { id: 2, name: 'Liverpool', city: 'Liverpool', foundedYear: 1892, playerCount: 25, createdAt: '', updatedAt: '' },
+  { id: 3, name: 'Manchester City', city: 'Manchester', foundedYear: 1880, playerCount: 25, createdAt: '', updatedAt: '' },
+  { id: 4, name: 'Arsenal', city: 'London', foundedYear: 1886, playerCount: 25, createdAt: '', updatedAt: '' },
 ];
 
 const MOCK_SEASONS = [

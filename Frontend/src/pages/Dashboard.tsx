@@ -189,7 +189,7 @@ const Dashboard: React.FC = () => {
                       <td>{index + 1}</td>
                       <td>{scorer.playerName}</td>
                       <td>{scorer.clubName}</td>
-                      <td>{scorer.goals}</td>
+                      <td>{scorer.goalsScored}</td>
                       <td>{scorer.assists}</td>
                     </tr>
                   ))}

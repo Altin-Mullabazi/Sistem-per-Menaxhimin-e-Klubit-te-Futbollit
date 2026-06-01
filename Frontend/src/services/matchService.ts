@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import apiClient from './apiClient';
 import { Match, MatchDetail, CreateMatchDto, UpdateMatchDto, ApiResponse, Pagination } from '../types';
 
 interface MatchListResponse {
