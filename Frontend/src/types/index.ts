@@ -368,6 +368,102 @@ export interface Staff {
   specialization?: string;
   employmentDate: string;
   status?: string;
+// Management-related types
+export interface Transfer {
+  id: number;
+  playerId: number;
+  playerName: string;
+  fromClubId?: number;
+  fromClubName?: string;
+  toClubId?: number;
+  toClubName?: string;
+  fee: number;
+  transferDate: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateTransferDto {
+  playerId: number;
+  fromClubId?: number;
+  toClubId?: number;
+  fee: number;
+  transferDate: string;
+}
+
+export interface UpdateTransferDto extends CreateTransferDto {}
+
+export interface Contract {
+  id: number;
+  playerId: number;
+  playerName: string;
+  clubId: number;
+  clubName: string;
+  salary: number;
+  startDate: string;
+  endDate: string;
+  status: string;
+  daysRemaining?: number;
+}
+
+export interface CreateContractDto {
+  playerId: number;
+  clubId: number;
+  salary: number;
+  startDate: string;
+  endDate: string;
+}
+
+export interface UpdateContractDto extends CreateContractDto {}
+
+export interface Injury {
+  id: number;
+  playerId: number;
+  playerName: string;
+  clubId?: number;
+  clubName?: string;
+  injuryType: string;
+  injuryDate: string;
+  recoveryDate?: string | null;
+  status: string;
+}
+
+export interface CreateInjuryDto {
+  playerId: number;
+  injuryType: string;
+  injuryDate: string;
+  recoveryDate?: string | null;
+}
+
+export interface UpdateInjuryDto extends CreateInjuryDto {
+  status?: string;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  pagination: Pagination;
+}
+export interface Club {
+  id: number;
+  name: string;
+}
+
+export interface Match {
+  id: number;
+  homeClubId: number;
+  homeClubName: string;
+  awayClubId: number;
+  awayClubName: string;
+  matchDate: string;
+  time?: string;
+  homeScore?: number;
+  awayScore?: number;
+  status: string;
+  competitionType?: string;
+  stadiumId: number;
+  stadiumName: string;
+  seasonId: number;
+  seasonName: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -391,5 +487,45 @@ export interface UpdateStaffDto {
   role?: string;
   specialization?: string;
   employmentDate?: string;
+export interface MatchDetail extends Match {
+  storeLocation?: string;
+  events: MatchEvent[];
+  stats: PlayerStats[];
+}
+
+export interface MatchEvent {
+  id: number;
+  playerId: number;
+  playerName: string;
+  eventType: string;
+  minute: number;
+  description?: string;
+}
+
+export interface PlayerStats {
+  id: number;
+  playerId: number;
+  playerName: string;
+  minutesPlayed: number;
+  goalsScored: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+  rating?: number;
+}
+
+export interface CreateMatchDto {
+  homeClubId: number;
+  awayClubId: number;
+  stadiumId: number;
+  matchDate: string;
+  time?: string;
+  seasonId: number;
+  competitionType?: string;
+}
+
+export interface UpdateMatchDto {
+  homeScore?: number;
+  awayScore?: number;
   status?: string;
 }

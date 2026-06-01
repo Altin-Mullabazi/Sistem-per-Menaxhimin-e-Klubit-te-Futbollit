@@ -13,6 +13,7 @@ import TrainingSessions from './pages/TrainingSessions';
 import StaffPage from './pages/StaffPage';
 import UsersPage from './pages/UsersPage';
 import SponsorsSeasons from './pages/SponsorsSeasons';
+import Management from './pages/Management';
 import './styles/App.css';
 
 function App() {
@@ -102,6 +103,10 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <StaffPage />
+                path="/management"
+                element={
+                  <ProtectedRoute>
+                    <Management />
                   </ProtectedRoute>
                 }
               />

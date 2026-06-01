@@ -5,12 +5,35 @@ import { matchService } from '../services/matchService';
 import { clubService } from '../services/clubService';
 import { seasonService } from '../services/seasonService';
 import { stadiumService } from '../services/stadiumService';
+import { Match, Pagination, Club } from '../types';
+import { matchService } from '../services/matchService';
 import MatchTable from '../components/MatchTable';
 import MatchForm from '../components/MatchForm';
 import MatchFilters from '../components/MatchFilters';
 import '../styles/Matches.css';
 
 const Matches: React.FC = () => {
+// Mock data - in real app, fetch from backend
+const MOCK_CLUBS: Club[] = [
+  { id: 1, name: 'Manchester United' },
+  { id: 2, name: 'Liverpool' },
+  { id: 3, name: 'Manchester City' },
+  { id: 4, name: 'Arsenal' },
+];
+
+const MOCK_SEASONS = [
+  { id: 1, name: '2025-2026', startDate: '2025-08-01', endDate: '2026-05-31' },
+  { id: 2, name: '2024-2025', startDate: '2024-08-01', endDate: '2025-05-31' },
+];
+
+const MOCK_STADIUMS = [
+  { id: 1, name: 'Old Trafford', city: 'Manchester' },
+  { id: 2, name: 'Anfield', city: 'Liverpool' },
+  { id: 3, name: 'Etihad Stadium', city: 'Manchester' },
+  { id: 4, name: 'Emirates Stadium', city: 'London' },
+];
+
+export const Matches: React.FC = () => {
   const { user } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
@@ -54,6 +77,7 @@ const Matches: React.FC = () => {
         status,
         startDate || undefined,
         endDate || undefined
+        status
       );
       setMatches(data.matches);
       setPagination(data.pagination);
@@ -87,6 +111,9 @@ const Matches: React.FC = () => {
   useEffect(() => {
     loadMatches();
   }, [pagination.page, pagination.pageSize, clubId, seasonId, status, startDate, endDate]);
+  useEffect(() => {
+    loadMatches();
+  }, [pagination.page, pagination.pageSize, clubId, seasonId, status]);
 
   const handleCreateClick = () => {
     if (!canCreate) {
@@ -236,6 +263,14 @@ const Matches: React.FC = () => {
         onStatusChange={handleStatusChange}
         onStartDateChange={handleStartDateChange}
         onEndDateChange={handleEndDateChange}
+        page={pagination.page}
+        pageSize={pagination.pageSize}
+        totalPages={pagination.totalPages}
+        clubs={MOCK_CLUBS}
+        seasons={MOCK_SEASONS}
+        onClubChange={handleClubChange}
+        onSeasonChange={handleSeasonChange}
+        onStatusChange={handleStatusChange}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
       />
@@ -254,6 +289,9 @@ const Matches: React.FC = () => {
           clubs={clubs}
           seasons={seasons}
           stadiums={stadiums}
+          clubs={MOCK_CLUBS}
+          seasons={MOCK_SEASONS}
+          stadiums={MOCK_STADIUMS}
           isLoading={isLoading}
           onSubmit={handleFormSubmit}
           onClose={handleFormClose}
