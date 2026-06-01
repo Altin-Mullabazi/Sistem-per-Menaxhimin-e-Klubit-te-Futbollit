@@ -68,7 +68,7 @@ namespace FootballClubAPI.Controllers
         /// <param name="status">Filter by status (optional)</param>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetMatches(int page = 1, int pageSize = 10, int? clubId = null, int? seasonId = null, string? status = null)
+        public async Task<IActionResult> GetMatches(int page = 1, int pageSize = 10, int? clubId = null, int? seasonId = null, string? status = null, DateTime? startDate = null, DateTime? endDate = null)
         {
             try
             {
@@ -77,7 +77,7 @@ namespace FootballClubAPI.Controllers
                     return BadRequest(new { success = false, message = "Invalid pagination: page >= 1, pageSize 1-100" });
                 }
 
-                var (matches, totalCount) = await _matchService.GetMatchesAsync(page, pageSize, clubId, seasonId, status);
+                var (matches, totalCount) = await _matchService.GetMatchesAsync(page, pageSize, clubId, seasonId, status, startDate, endDate);
                 return Ok(new
                 {
                     success = true,

@@ -31,6 +31,23 @@ export const Navigation: React.FC = () => {
               <NavLink to="/matches" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
                 Matches
               </NavLink>
+              <NavLink to="/seasons" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                Seasons
+              </NavLink>
+              <NavLink to="/staff" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                Staff
+              </NavLink>
+              <NavLink to="/training-sessions" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                Training
+              </NavLink>
+              <NavLink to="/player-stats" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                Player Stats
+              </NavLink>
+              {user?.role === 'Admin' && (
+                <NavLink to="/users" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                  Users
+                </NavLink>
+              )}
               <NavLink to="/sponsors-seasons" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
                 Sponsors & Seasons
               </NavLink>

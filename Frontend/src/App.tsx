@@ -7,6 +7,11 @@ import { Login } from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Players from './pages/Players';
 import Matches from './pages/Matches';
+import PlayerStatsPage from './pages/PlayerStatsPage';
+import Seasons from './pages/Seasons';
+import TrainingSessions from './pages/TrainingSessions';
+import StaffPage from './pages/StaffPage';
+import UsersPage from './pages/UsersPage';
 import SponsorsSeasons from './pages/SponsorsSeasons';
 import Management from './pages/Management';
 import './styles/App.css';
@@ -49,6 +54,24 @@ function App() {
               />
 
               <Route
+                path="/player-stats"
+                element={
+                  <ProtectedRoute>
+                    <PlayerStatsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/users"
+                element={
+                  <ProtectedRoute>
+                    <UsersPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
                 path="/sponsors-seasons"
                 element={
                   <ProtectedRoute>
@@ -58,6 +81,28 @@ function App() {
               />
 
               <Route
+                path="/seasons"
+                element={
+                  <ProtectedRoute>
+                    <Seasons />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/training-sessions"
+                element={
+                  <ProtectedRoute>
+                    <TrainingSessions />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/staff"
+                element={
+                  <ProtectedRoute>
+                    <StaffPage />
                 path="/management"
                 element={
                   <ProtectedRoute>

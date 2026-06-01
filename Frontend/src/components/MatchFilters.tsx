@@ -4,6 +4,8 @@ interface MatchFiltersProps {
   clubId?: number;
   seasonId?: number;
   status?: string;
+  startDate?: string;
+  endDate?: string;
   page: number;
   pageSize: number;
   totalPages: number;
@@ -12,6 +14,8 @@ interface MatchFiltersProps {
   onClubChange: (clubId?: number) => void;
   onSeasonChange: (seasonId?: number) => void;
   onStatusChange: (status?: string) => void;
+  onStartDateChange: (date?: string) => void;
+  onEndDateChange: (date?: string) => void;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
 }
@@ -20,6 +24,8 @@ const MatchFilters: React.FC<MatchFiltersProps> = ({
   clubId,
   seasonId,
   status,
+  startDate,
+  endDate,
   page,
   pageSize,
   totalPages,
@@ -28,6 +34,8 @@ const MatchFilters: React.FC<MatchFiltersProps> = ({
   onClubChange,
   onSeasonChange,
   onStatusChange,
+  onStartDateChange,
+  onEndDateChange,
   onPageChange,
   onPageSizeChange,
 }) => {
@@ -91,6 +99,32 @@ const MatchFilters: React.FC<MatchFiltersProps> = ({
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="startDateFilter">Start Date:</label>
+          <input
+            id="startDateFilter"
+            type="date"
+            value={startDate || ''}
+            onChange={(e) => {
+              onStartDateChange(e.target.value || undefined);
+              onPageChange(1);
+            }}
+          />
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="endDateFilter">End Date:</label>
+          <input
+            id="endDateFilter"
+            type="date"
+            value={endDate || ''}
+            onChange={(e) => {
+              onEndDateChange(e.target.value || undefined);
+              onPageChange(1);
+            }}
+          />
         </div>
       </div>
 
