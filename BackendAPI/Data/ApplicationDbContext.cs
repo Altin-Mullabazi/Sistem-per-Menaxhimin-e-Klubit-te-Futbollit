@@ -24,6 +24,7 @@ namespace FootballClubAPI.Data
         public DbSet<Injury> Injuries { get; set; }
         public DbSet<TrainingSession> TrainingSessions { get; set; }
         public DbSet<TrainingAttendance> TrainingAttendances { get; set; }
+        public DbSet<Staff> Staff { get; set; }
         public DbSet<Sponsor> Sponsors { get; set; }
         public DbSet<SponsorClub> SponsorClubs { get; set; }
         public DbSet<Stadium> Stadiums { get; set; }
@@ -351,6 +352,37 @@ namespace FootballClubAPI.Data
                 .WithMany()
                 .HasForeignKey(stadium => stadium.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Staff Configuration
+            modelBuilder.Entity<Staff>()
+                .HasKey(s => s.Id);
+
+            modelBuilder.Entity<Staff>()
+                .Property(s => s.FirstName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Staff>()
+                .Property(s => s.LastName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Staff>()
+                .Property(s => s.Role)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Staff>()
+                .HasOne(s => s.Club)
+                .WithMany(club => club.Staff)
+                .HasForeignKey(s => s.ClubId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Staff>()
+                .HasOne(s => s.User)
+                .WithMany(u => u.Staff)
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Sponsor>()
                 .HasKey(sponsor => sponsor.Id);

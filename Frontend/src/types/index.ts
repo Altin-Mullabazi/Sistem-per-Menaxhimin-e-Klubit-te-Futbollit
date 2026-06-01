@@ -304,3 +304,41 @@ export interface UpdateMatchDto {
   awayScore?: number;
   status?: string;
 }
+
+export interface Staff {
+  id: number;
+  clubId?: number;
+  clubName?: string;
+  userId?: string;
+  userEmail?: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  specialization?: string;
+  employmentDate: string;
+  status?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateStaffDto {
+  clubId: number;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  specialization?: string;
+  employmentDate: string;
+  status?: string;
+}
+
+export interface UpdateStaffDto {
+  clubId?: number;
+  userId?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: string;
+  specialization?: string;
+  employmentDate?: string;
+  status?: string;
+}

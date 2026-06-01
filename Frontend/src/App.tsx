@@ -9,6 +9,7 @@ import Matches from './pages/Matches';
 import PlayerStatsPage from './pages/PlayerStatsPage';
 import Seasons from './pages/Seasons';
 import TrainingSessions from './pages/TrainingSessions';
+import StaffPage from './pages/StaffPage';
 import SponsorsSeasons from './pages/SponsorsSeasons';
 import './styles/App.css';
 
@@ -72,6 +73,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <TrainingSessions />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/staff"
+                element={
+                  <ProtectedRoute>
+                    <StaffPage />
                   </ProtectedRoute>
                 }
               />

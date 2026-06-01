@@ -32,5 +32,6 @@ namespace FootballClubAPI.Models
         public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
         public virtual ICollection<Match> Matches { get; set; } = new List<Match>();
         public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+        public virtual ICollection<Staff> Staff { get; set; } = new List<Staff>();
     }
 }

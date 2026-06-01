@@ -31,6 +31,9 @@ export const Navigation: React.FC = () => {
               <NavLink to="/seasons" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
                 Seasons
               </NavLink>
+              <NavLink to="/staff" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+                Staff
+              </NavLink>
               <NavLink to="/training-sessions" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
                 Training
               </NavLink>
