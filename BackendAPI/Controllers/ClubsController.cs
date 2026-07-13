@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FootballClubAPI.DTOs;
 using FootballClubAPI.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -108,7 +109,8 @@ namespace FootballClubAPI.Controllers
 
             try
             {
-                var club = await _clubService.CreateClubAsync(createClubDto);
+                var actingUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var club = await _clubService.CreateClubAsync(createClubDto, actingUserId);
                 return CreatedAtAction(nameof(GetClubById), new { id = club.Id }, 
                     new { success = true, data = club, message = "Club created successfully" });
             }

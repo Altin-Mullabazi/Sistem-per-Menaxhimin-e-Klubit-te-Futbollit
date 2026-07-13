@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { dashboardService } from '../services/dashboardService';
+import { useAuth } from '../context/AuthContext';
+import { Icon } from '../components/Icon';
 import {
   DashboardSummary,
   ExpiringContract,
@@ -20,6 +23,7 @@ const getUrgencyClass = (endDate: string) => {
 };
 
 const Dashboard: React.FC = () => {
+  const { user, canManage } = useAuth();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([]);
   const [topScorers, setTopScorers] = useState<TopScorer[]>([]);
@@ -64,12 +68,16 @@ const Dashboard: React.FC = () => {
     <div className="dashboard-page">
       <div className="dashboard-header">
         <div>
-          <h1>Club Dashboard</h1>
-          <p>Key performance data across clubs, players, matches, and contracts.</p>
+          <span className="dashboard-eyebrow">Operations overview</span>
+          <h1>Welcome back, {user?.firstName || user?.username || 'team member'}</h1>
+          <p>Monitor squad activity, match readiness and club operations from one workspace.</p>
         </div>
-        <button className="btn btn-primary" onClick={loadDashboard} disabled={isLoading}>
-          Refresh
-        </button>
+        <div className="dashboard-header-actions">
+          <Link className="btn dashboard-secondary-action" to="/matches">View matches</Link>
+          <button className="btn btn-primary" onClick={loadDashboard} disabled={isLoading}>
+            {isLoading ? 'Refreshing…' : 'Refresh data'}
+          </button>
+        </div>
       </div>
 
       {error && <div className="error-message">{error}</div>}
@@ -84,42 +92,42 @@ const Dashboard: React.FC = () => {
       {!isLoading && summary && (
         <section className="summary-grid">
           <div className="summary-card card-primary">
-            <div className="summary-card-icon">🏟️</div>
+            <div className="summary-card-icon"><Icon name="building" /></div>
             <div>
               <p>Total Clubs</p>
               <h2>{summary.totalClubs}</h2>
             </div>
           </div>
           <div className="summary-card card-secondary">
-            <div className="summary-card-icon">👥</div>
+            <div className="summary-card-icon"><Icon name="players" /></div>
             <div>
               <p>Total Players</p>
               <h2>{summary.totalPlayers}</h2>
             </div>
           </div>
           <div className="summary-card card-info">
-            <div className="summary-card-icon">⚽</div>
+            <div className="summary-card-icon"><Icon name="activity" /></div>
             <div>
               <p>Total Matches</p>
               <h2>{summary.totalMatches}</h2>
             </div>
           </div>
           <div className="summary-card card-success">
-            <div className="summary-card-icon">🧑‍💼</div>
+            <div className="summary-card-icon"><Icon name="users" /></div>
             <div>
               <p>Total Staff</p>
               <h2>{summary.totalStaff}</h2>
             </div>
           </div>
           <div className="summary-card card-warning">
-            <div className="summary-card-icon">🩹</div>
+            <div className="summary-card-icon"><Icon name="injury" /></div>
             <div>
               <p>Total Injuries</p>
               <h2>{summary.totalInjuries}</h2>
             </div>
           </div>
           <div className="summary-card card-danger">
-            <div className="summary-card-icon">📜</div>
+            <div className="summary-card-icon"><Icon name="contract" /></div>
             <div>
               <p>Total Contracts</p>
               <h2>{summary.totalContracts}</h2>
@@ -306,15 +314,20 @@ const Dashboard: React.FC = () => {
           )}
         </div>
 
-        <div className="dashboard-card section-card section-empty">
+        <div className="dashboard-card section-card quick-actions-card">
           <div className="section-header">
             <div>
-              <h2>Overview</h2>
-              <p>Use the dashboard to monitor upcoming action and contract risk.</p>
+              <h2>Quick Actions</h2>
+              <p>Jump directly into frequent club workflows.</p>
             </div>
           </div>
-          <div className="empty-state">
-            <p>Pull fresh data with the Refresh button.</p>
+          <div className="quick-actions-grid">
+            <Link to="/players"><Icon name="players" /><span><strong>Squad</strong><small>Manage players</small></span></Link>
+            <Link to="/matches"><Icon name="activity" /><span><strong>Matches</strong><small>Fixtures & results</small></span></Link>
+            <Link to="/training-sessions"><Icon name="training" /><span><strong>Training</strong><small>Plan sessions</small></span></Link>
+            {canManage && (
+              <Link to="/contracts"><Icon name="contract" /><span><strong>Contracts</strong><small>Review agreements</small></span></Link>
+            )}
           </div>
         </div>
       </section>

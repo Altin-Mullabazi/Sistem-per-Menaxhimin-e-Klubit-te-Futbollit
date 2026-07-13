@@ -8,7 +8,7 @@ import PlayerList from '../components/PlayerList';
 import '../styles/Management.css';
 
 export const Players: React.FC = () => {
-  const { user } = useAuth();
+  const { canManage, isAdmin } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +103,8 @@ export const Players: React.FC = () => {
 
   const handleCreateClick = () => {
     setEditingPlayer(null);
-    setShowForm(true);
+    // Defer so the opening click cannot land on the new overlay and close it
+    window.requestAnimationFrame(() => setShowForm(true));
   };
 
   const handleEditClick = (player: Player) => {
@@ -145,17 +146,14 @@ export const Players: React.FC = () => {
   };
 
   // Role-based permissions
-  const canCreate = user?.role === 'Admin' || user?.role === 'Manager';
-  const canEdit = user?.role === 'Admin' || user?.role === 'Manager';
-  const canDelete = user?.role === 'Admin';
+  const canCreate = canManage;
+  const canEdit = canManage;
+  const canDelete = isAdmin;
 
   return (
     <div className="management-container">
       <div className="management-header">
         <h1>👥 Players Management</h1>
-        <div className="header-info">
-          <p>Logged in as: <strong>{user?.username}</strong> ({user?.role})</p>
-        </div>
       </div>
 
       {error && (
@@ -176,9 +174,10 @@ export const Players: React.FC = () => {
         <div className="toolbar-left">
           {canCreate && (
             <button
+              type="button"
               className="btn btn-primary"
               onClick={handleCreateClick}
-              disabled={isLoading || showForm}
+              disabled={isLoading}
             >
               + Add New Player
             </button>

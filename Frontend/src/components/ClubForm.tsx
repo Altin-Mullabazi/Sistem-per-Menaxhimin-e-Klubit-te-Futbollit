@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Club, CreateClubDto, UpdateClubDto } from '../types';
 import { clubService } from '../services/clubService';
+import Modal from './Modal';
 import '../styles/Form.css';
 
 interface ClubFormProps {
@@ -100,13 +101,7 @@ const ClubForm: React.FC<ClubFormProps> = ({ club, onClose, onSubmit }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{club ? 'Edit Club' : 'Create New Club'}</h2>
-          <button className="close-btn" onClick={onClose}>✕</button>
-        </div>
-
+    <Modal title={club ? 'Edit Club' : 'Create New Club'} onClose={onClose}>
         <form onSubmit={handleSubmit} className="form">
           {error && <div className="error-message">{error}</div>}
 
@@ -205,8 +200,7 @@ const ClubForm: React.FC<ClubFormProps> = ({ club, onClose, onSubmit }) => {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };
 

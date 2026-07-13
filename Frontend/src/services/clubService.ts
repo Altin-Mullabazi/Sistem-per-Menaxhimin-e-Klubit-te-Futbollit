@@ -13,7 +13,11 @@ export const clubService = {
       const response = await apiClient.get(`/clubs?${params.toString()}`);
       return response.data.data;
     } catch (error: any) {
-      throw error.response?.data || { success: false, message: 'Failed to fetch clubs' };
+      const fallback =
+        error.code === 'ERR_NETWORK'
+          ? 'Cannot reach API. Start BackendAPI (dotnet run) on http://localhost:5000'
+          : 'Failed to fetch clubs';
+      throw error.response?.data || { success: false, message: error.message || fallback };
     }
   },
 
@@ -59,7 +63,11 @@ export const clubService = {
       const response = await apiClient.get('/clubs?page=1&pageSize=100');
       return response.data.data?.data || [];
     } catch (error: any) {
-      throw error.response?.data || { success: false, message: 'Failed to fetch clubs' };
+      const fallback =
+        error.code === 'ERR_NETWORK'
+          ? 'Cannot reach API. Start BackendAPI (dotnet run) on http://localhost:5000'
+          : 'Failed to fetch clubs';
+      throw error.response?.data || { success: false, message: error.message || fallback };
     }
   },
 };

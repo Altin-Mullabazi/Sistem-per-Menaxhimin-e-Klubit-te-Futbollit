@@ -7,7 +7,7 @@ import ClubList from '../components/ClubList';
 import '../styles/Management.css';
 
 export const Clubs: React.FC = () => {
-  const { user } = useAuth();
+  const { canManage, isAdmin } = useAuth();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +83,7 @@ export const Clubs: React.FC = () => {
 
   const handleCreateClick = () => {
     setEditingClub(null);
-    setShowForm(true);
+    window.requestAnimationFrame(() => setShowForm(true));
   };
 
   const handleEditClick = (club: Club) => {
@@ -122,17 +122,14 @@ export const Clubs: React.FC = () => {
   };
 
   // Role-based permissions
-  const canCreate = user?.role === 'Admin' || user?.role === 'Manager';
-  const canEdit = user?.role === 'Admin' || user?.role === 'Manager';
-  const canDelete = user?.role === 'Admin';
+  const canCreate = canManage;
+  const canEdit = canManage;
+  const canDelete = isAdmin;
 
   return (
     <div className="management-container">
       <div className="management-header">
         <h1>⚽ Clubs Management</h1>
-        <div className="header-info">
-          <p>Logged in as: <strong>{user?.username}</strong> ({user?.role})</p>
-        </div>
       </div>
 
       {error && (
@@ -153,9 +150,10 @@ export const Clubs: React.FC = () => {
         <div className="toolbar-left">
           {canCreate && (
             <button
+              type="button"
               className="btn btn-primary"
               onClick={handleCreateClick}
-              disabled={isLoading || showForm}
+              disabled={isLoading}
             >
               + Add New Club
             </button>

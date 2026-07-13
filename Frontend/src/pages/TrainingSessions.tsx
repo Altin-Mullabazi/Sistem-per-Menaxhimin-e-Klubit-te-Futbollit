@@ -227,7 +227,7 @@ const TrainingSessions: React.FC = () => {
   const loadClubs = async () => {
     try {
       const data = await clubService.getClubs(1, 100);
-      setClubs(data);
+      setClubs(data.data);
     } catch (err: any) {
       console.warn('Unable to load clubs for training filter', err);
     }
@@ -327,10 +327,6 @@ const TrainingSessions: React.FC = () => {
         <div>
           <h1>Training Sessions</h1>
           <p>Schedule and manage club training sessions by date, type, and club.</p>
-        </div>
-        <div className="header-info">
-          <p>Logged in as: <strong>{user?.username || 'User'}</strong></p>
-          {user?.role && <p>Role: <strong>{user.role}</strong></p>}
         </div>
       </div>
 

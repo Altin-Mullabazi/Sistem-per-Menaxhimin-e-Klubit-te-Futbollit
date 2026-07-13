@@ -41,9 +41,9 @@ export const Login: React.FC = () => {
 
     try {
       await login(email, password);
-      navigate('/dashboard');
-    } catch (err) {
-      console.error('Login error:', err);
+      navigate('/dashboard', { replace: true });
+    } catch {
+      // Error message is shown via AuthContext
     }
   };
 
@@ -52,8 +52,8 @@ export const Login: React.FC = () => {
   return (
     <div className="auth-container">
       <div className="auth-box auth-box-login">
-        <h1>⚽ Football Club</h1>
-        <h2>Login</h2>
+        <h1>Club Command</h1>
+        <h2>Football operations portal</h2>
 
         {allErrors.length > 0 && (
           <div className="error-message">
@@ -94,7 +94,7 @@ export const Login: React.FC = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
               >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
+                {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
           </div>
@@ -111,8 +111,9 @@ export const Login: React.FC = () => {
           <div className="demo-credentials">
             <p><strong>Demo Credentials:</strong></p>
             <ul>
-              <li>Email: admin@footballclub.com</li>
-              <li>Password: Admin@123</li>
+              <li><strong>Admin:</strong> admin@email.com / Pass@word123</li>
+              <li><strong>Alt:</strong> admin@footballclub.com / Admin@123</li>
+              <li><strong>Manager:</strong> manager@email.com / Pass@word123</li>
             </ul>
           </div>
         </div>

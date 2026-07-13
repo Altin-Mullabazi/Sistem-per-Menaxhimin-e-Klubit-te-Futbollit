@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Navigation } from './components/Navigation';
+import { AppHeader } from './components/AppHeader';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -30,6 +31,7 @@ function App() {
         <div className="app">
           <Navigation />
           <main className="main-content">
+            <AppHeader />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

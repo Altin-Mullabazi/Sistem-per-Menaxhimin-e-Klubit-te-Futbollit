@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Transfer, CreateTransferDto, UpdateTransferDto } from '../../types';
+import { Transfer, CreateTransferDto } from '../../types';
 import { playerService } from '../../services/playerService';
 
 interface TransferFormProps {

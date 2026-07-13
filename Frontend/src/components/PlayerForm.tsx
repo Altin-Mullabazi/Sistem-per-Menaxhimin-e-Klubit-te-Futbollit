@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Player, CreatePlayerDto, UpdatePlayerDto, Club } from '../types';
+import { Player, Club } from '../types';
 import { playerService } from '../services/playerService';
+import Modal from './Modal';
 import '../styles/Form.css';
 
 interface PlayerFormProps {
@@ -60,8 +61,13 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit, club
       setError('Position is required');
       return false;
     }
-    if (formData.jerseyNumber && isNaN(parseInt(formData.jerseyNumber))) {
-      setError('Jersey number must be a valid number');
+    const jersey = parseInt(formData.jerseyNumber, 10);
+    if (isNaN(jersey) || jersey < 1 || jersey > 99) {
+      setError('Jersey number is required (1–99)');
+      return false;
+    }
+    if (clubs.length > 0 && !formData.clubId) {
+      setError('Please select a club');
       return false;
     }
     return true;
@@ -77,26 +83,20 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit, club
 
     setIsLoading(true);
     try {
+      const jerseyNumber = parseInt(formData.jerseyNumber, 10);
+      const payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        age: parseInt(formData.age, 10),
+        position: formData.position,
+        clubId: formData.clubId ? parseInt(formData.clubId, 10) : undefined,
+        jerseyNumber,
+      };
+
       if (player) {
-        const updateData: UpdatePlayerDto = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          age: parseInt(formData.age),
-          position: formData.position,
-          clubId: formData.clubId ? parseInt(formData.clubId) : undefined,
-          jerseyNumber: formData.jerseyNumber ? parseInt(formData.jerseyNumber) : undefined,
-        };
-        await playerService.updatePlayer(player.id, updateData);
+        await playerService.updatePlayer(player.id, payload);
       } else {
-        const createData: CreatePlayerDto = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          age: parseInt(formData.age),
-          position: formData.position,
-          clubId: formData.clubId ? parseInt(formData.clubId) : undefined,
-          jerseyNumber: formData.jerseyNumber ? parseInt(formData.jerseyNumber) : undefined,
-        };
-        await playerService.createPlayer(createData);
+        await playerService.createPlayer(payload);
       }
       onSubmit();
     } catch (err: any) {
@@ -107,13 +107,7 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit, club
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{player ? 'Edit Player' : 'Create New Player'}</h2>
-          <button className="close-btn" onClick={onClose}>✕</button>
-        </div>
-
+    <Modal title={player ? 'Edit Player' : 'Create New Player'} onClose={onClose}>
         <form onSubmit={handleSubmit} className="form">
           {error && <div className="error-message">{error}</div>}
 
@@ -185,7 +179,7 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit, club
 
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="jerseyNumber">Jersey Number (optional)</label>
+              <label htmlFor="jerseyNumber">Jersey Number *</label>
               <input
                 type="number"
                 id="jerseyNumber"
@@ -196,19 +190,22 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit, club
                 min="1"
                 max="99"
                 disabled={isLoading}
+                required
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="clubId">Club (optional)</label>
+              <label htmlFor="clubId">Club{clubs.length > 0 ? ' *' : ''}</label>
               <select
                 id="clubId"
                 name="clubId"
                 value={formData.clubId}
                 onChange={handleChange}
-                disabled={isLoading}
+                disabled={isLoading || clubs.length === 0}
               >
-                <option value="">Select club</option>
+                <option value="">
+                  {clubs.length === 0 ? 'No clubs — create one under Clubs first' : 'Select club'}
+                </option>
                 {clubs.map((club) => (
                   <option key={club.id} value={club.id}>
                     {club.name}
@@ -227,8 +224,7 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit, club
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };
 

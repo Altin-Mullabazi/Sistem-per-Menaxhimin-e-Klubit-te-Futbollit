@@ -95,8 +95,8 @@ export const Register: React.FC = () => {
   return (
     <div className="auth-container">
       <div className="auth-box auth-box-register">
-        <h1>⚽ Football Club</h1>
-        <h2>Register</h2>
+        <h1>Join Club Command</h1>
+        <h2>Create your operations account</h2>
 
         {allErrors.length > 0 && (
           <div className="error-message">
@@ -165,7 +165,7 @@ export const Register: React.FC = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
               >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
+                {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
           </div>

@@ -1,5 +1,6 @@
 using FootballClubAPI.Data;
 using FootballClubAPI.DTOs;
+using FootballClubAPI.Helpers;
 using FootballClubAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -192,7 +193,54 @@ namespace FootballClubAPI.Services
             return detailDto;
         }
 
-        public async Task<ClubDto> CreateClubAsync(CreateClubDto createClubDto)
+        /// <summary>
+        /// Ensures the Identity user has a matching LegacyUsers row (required by FK on Clubs.UserId).
+        /// </summary>
+        private async Task<string?> ResolveLegacyUserIdAsync(string? identityUserId)
+        {
+            if (string.IsNullOrWhiteSpace(identityUserId))
+            {
+                return null;
+            }
+
+            if (await _context.LegacyUsers.AnyAsync(u => u.Id == identityUserId))
+            {
+                return identityUserId;
+            }
+
+            var appUser = await _context.Users.FindAsync(identityUserId);
+            if (appUser == null)
+            {
+                _logger.LogWarning("Identity user {UserId} not found when creating club", identityUserId);
+                return null;
+            }
+
+            var roles = await _context.UserRoles
+                .Where(ur => ur.UserId == identityUserId)
+                .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (_, role) => role.Name)
+                .FirstOrDefaultAsync();
+
+            _context.LegacyUsers.Add(new User
+            {
+                Id = appUser.Id,
+                Username = appUser.UserName ?? appUser.Email ?? string.Empty,
+                Email = appUser.Email ?? string.Empty,
+                PasswordHash = appUser.PasswordHash ?? string.Empty,
+                FirstName = appUser.FirstName,
+                LastName = appUser.LastName,
+                Role = roles ?? appUser.Role ?? RoleConstants.User,
+                EmailVerified = appUser.EmailConfirmed,
+                IsActive = appUser.IsActive,
+                CreatedAt = appUser.CreatedAt,
+                UpdatedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Created LegacyUsers record for Identity user {UserId}", identityUserId);
+            return identityUserId;
+        }
+
+        public async Task<ClubDto> CreateClubAsync(CreateClubDto createClubDto, string? actingUserId = null)
         {
             _logger.LogInformation($"Creating club: {createClubDto.Name}");
 
@@ -228,6 +276,8 @@ namespace FootballClubAPI.Services
                     $"A club with name '{trimmedName}' already exists");
             }
 
+            var legacyUserId = await ResolveLegacyUserIdAsync(actingUserId);
+
             var club = new Club
             {
                 Name = trimmedName,
@@ -236,6 +286,8 @@ namespace FootballClubAPI.Services
                 FoundedYear = createClubDto.FoundedYear,
                 President = trimmedPresident,
                 Budget = createClubDto.Budget,
+                UserId = legacyUserId,
+                CreatedById = actingUserId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

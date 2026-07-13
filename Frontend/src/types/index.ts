@@ -69,7 +69,7 @@ export interface CreatePlayerDto {
   position: string;
   clubId?: number;
   clubName?: string;
-  jerseyNumber?: number;
+  jerseyNumber: number;
 }
 
 export interface UpdatePlayerDto {
@@ -79,7 +79,7 @@ export interface UpdatePlayerDto {
   position: string;
   clubId?: number;
   clubName?: string;
-  jerseyNumber?: number;
+  jerseyNumber: number;
 }
 
 export interface PlayerListResponse {
@@ -408,6 +408,8 @@ export interface Staff {
   specialization?: string;
   employmentDate: string;
   status?: string;
+}
+
 // Management-related types
 export interface Transfer {
   id: number;
@@ -527,6 +529,9 @@ export interface UpdateStaffDto {
   role?: string;
   specialization?: string;
   employmentDate?: string;
+  status?: string;
+}
+
 export interface MatchDetail extends Match {
   storeLocation?: string;
   events: MatchEvent[];

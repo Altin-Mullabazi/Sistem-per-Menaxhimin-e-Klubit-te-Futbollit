@@ -22,7 +22,7 @@ namespace FootballClubAPI.Services
         /// <summary>
         /// Create a new club with validation
         /// </summary>
-        Task<ClubDto> CreateClubAsync(CreateClubDto createClubDto);
+        Task<ClubDto> CreateClubAsync(CreateClubDto createClubDto, string? actingUserId = null);
 
         /// <summary>
         /// Update an existing club

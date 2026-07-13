@@ -3,6 +3,39 @@ import { User, AuthResponse } from '../types';
 import { authService } from '../services/authService';
 import { setAuthTokens, clearAuthTokens } from '../services/apiClient';
 
+export const normalizeRole = (role?: string): string => (role ?? '').trim().toLowerCase();
+
+export const hasRole = (role: string | undefined, ...allowed: string[]): boolean =>
+  allowed.some((r) => normalizeRole(role) === r.toLowerCase());
+
+const normalizeUser = (raw: Record<string, unknown> | null | undefined): User | null => {
+  if (!raw) {
+    return null;
+  }
+
+  const role = (raw.role ?? raw.Role) as string | undefined;
+
+  return {
+    id: String(raw.id ?? raw.Id ?? ''),
+    username: String(raw.username ?? raw.Username ?? raw.email ?? raw.Email ?? ''),
+    email: String(raw.email ?? raw.Email ?? ''),
+    role: role ? String(role) : undefined,
+    firstName: (raw.firstName ?? raw.FirstName) as string | undefined,
+    lastName: (raw.lastName ?? raw.LastName) as string | undefined,
+    fullName: (raw.fullName ?? raw.FullName) as string | undefined,
+    createdAt: (raw.createdAt ?? raw.CreatedAt) as string | undefined,
+    updatedAt: (raw.updatedAt ?? raw.UpdatedAt) as string | undefined,
+  };
+};
+
+const parseStoredUser = (stored: string): User | null => {
+  try {
+    return normalizeUser(JSON.parse(stored) as Record<string, unknown>);
+  } catch {
+    return null;
+  }
+};
+
 interface AuthContextType {
   user: User | null;
   accessToken: string | null;
@@ -10,6 +43,8 @@ interface AuthContextType {
   error: string | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isManager: boolean;
+  canManage: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (firstName: string, lastName: string, email: string, password: string, confirmPassword: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -21,7 +56,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     const stored = localStorage.getItem('user');
-    return stored ? JSON.parse(stored) : null;
+    return stored ? parseStoredUser(stored) : null;
   });
 
   const [accessToken, setAccessToken] = useState<string | null>(() => {
@@ -62,10 +97,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        // ignore parse errors
+      const parsed = parseStoredUser(storedUser);
+      if (parsed) {
+        setUser(parsed);
       }
     }
   }, []);
@@ -77,7 +111,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response: AuthResponse = await authService.login({ email, password });
       if (response.success) {
         setAccessToken(response.accessToken || null);
-        setUser(response.user || null);
+        const normalizedUser = normalizeUser(
+          (response.user ?? null) as unknown as Record<string, unknown> | null
+        );
+        setUser(normalizedUser);
 
         if (response.accessToken) {
           localStorage.setItem('accessToken', response.accessToken);
@@ -85,18 +122,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (response.refreshToken) {
           localStorage.setItem('refreshToken', response.refreshToken);
         }
-        if (response.user) {
-          localStorage.setItem('user', JSON.stringify(response.user));
+        if (normalizedUser) {
+          localStorage.setItem('user', JSON.stringify(normalizedUser));
         }
         // ensure apiClient has tokens
         if (response.accessToken || response.refreshToken) {
           setAuthTokens(response.accessToken || '', response.refreshToken || '');
         }
       } else {
-        setError(response.message);
+        const message = response.message || 'Login failed';
+        setError(message);
+        throw new Error(message);
       }
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      const message =
+        err?.message ||
+        err?.Message ||
+        (typeof err === 'string' ? err : null) ||
+        'Login failed';
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -144,7 +188,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading,
     error,
     isAuthenticated: !!accessToken && !!user,
-    isAdmin: user?.role === 'Admin',
+    isAdmin: hasRole(user?.role, 'Admin'),
+    isManager: hasRole(user?.role, 'Manager'),
+    canManage: hasRole(user?.role, 'Admin', 'Manager'),
     login,
     register,
     logout,

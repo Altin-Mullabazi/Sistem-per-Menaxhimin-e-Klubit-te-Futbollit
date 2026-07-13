@@ -1,27 +1,154 @@
 .coming-soon-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 60vh;
-    padding: 2rem;
+  display: grid;
+  min-height: 62vh;
+  place-items: center;
 }
 
 .coming-soon-content {
-    text-align: center;
-    padding: 3rem;
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(155, 89, 182, 0.1) 100%);
-    border-radius: 1rem;
-    border: 2px dashed var(--primary-color);
+  position: relative;
+  overflow: hidden;
+  width: min(100%, 680px);
+  padding: clamp(2rem, 6vw, 4rem);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.14), transparent 17rem),
+    white;
+  box-shadow: var(--shadow);
+}
+
+.coming-soon-content::before {
+  content: "CLUB OPERATIONS";
+  display: inline-flex;
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  color: #047857;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  background: #dff8ec;
 }
 
 .coming-soon-content h1 {
-    font-size: 2.5rem;
-    color: var(--primary-color);
-    margin-bottom: 1rem;
+  margin-bottom: 0.6rem;
+  color: var(--text-primary);
+  font-size: clamp(1.75rem, 5vw, 2.6rem);
 }
 
 .coming-soon-content p {
-    font-size: 1.1rem;
-    color: var(--text-color);
-    margin: 0.5rem 0;
+  max-width: 490px;
+  margin: 0.4rem auto;
+  color: var(--text-secondary);
+}
+
+.stadiums-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.module-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.35rem 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(115deg, rgba(16, 185, 129, 0.08), transparent 45%),
+    white;
+  box-shadow: var(--shadow);
+}
+
+.module-intro h2 {
+  margin: 0.25rem 0 0.2rem;
+  font-size: 1.35rem;
+}
+
+.module-intro p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.module-eyebrow {
+  color: var(--primary-dark);
+  font-size: 0.67rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.stadium-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.stadium-card {
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: white;
+  box-shadow: var(--shadow);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.stadium-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 34px rgba(9, 40, 29, 0.12);
+}
+
+.stadium-visual {
+  position: relative;
+  display: grid;
+  min-height: 130px;
+  place-items: center;
+  color: #6ee7b7;
+  background:
+    linear-gradient(rgba(6, 35, 26, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 35, 26, 0.15) 1px, transparent 1px),
+    linear-gradient(135deg, #0a241b, #14543d);
+  background-size: 24px 24px, 24px 24px, auto;
+}
+
+.stadium-index {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.stadium-card-body {
+  padding: 1rem;
+}
+
+.stadium-card h3 {
+  margin: 0.75rem 0 0.2rem;
+  font-size: 1rem;
+}
+
+.stadium-card p {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .stadium-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .module-intro {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .stadium-grid {
+    grid-template-columns: 1fr;
+  }
 }
