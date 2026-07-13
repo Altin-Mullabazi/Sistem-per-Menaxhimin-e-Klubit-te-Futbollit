@@ -19,7 +19,7 @@ const initialFormState = {
 };
 
 export const PlayerStatsPage: React.FC = () => {
-  const { user } = useAuth();
+  const { isAdmin, isManager } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [stats, setStats] = useState<PlayerStats[]>([]);
@@ -39,8 +39,8 @@ export const PlayerStatsPage: React.FC = () => {
     ...initialFormState,
   });
 
-  const canManage = user?.role === 'Admin' || user?.role === 'Manager';
-  const canDelete = user?.role === 'Admin';
+  const canManage = isAdmin || isManager;
+  const canDelete = isAdmin;
 
   const loadLookups = async () => {
     try {

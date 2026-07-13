@@ -52,7 +52,7 @@ export const Login: React.FC = () => {
   return (
     <div className="auth-container">
       <div className="auth-box auth-box-login">
-        <h1>Club Command</h1>
+        <h1>SquadHQ</h1>
         <h2>Football operations portal</h2>
 
         {allErrors.length > 0 && (

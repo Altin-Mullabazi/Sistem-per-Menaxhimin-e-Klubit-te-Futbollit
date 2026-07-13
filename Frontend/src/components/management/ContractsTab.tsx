@@ -6,8 +6,8 @@ import { Contract } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 
 const ContractsTab: React.FC = () => {
-  const { user, isAdmin } = useAuth();
-  const canManage = user?.role === 'Manager' || isAdmin;
+  const { isAdmin, isManager } = useAuth();
+  const canManage = isManager || isAdmin;
 
   const [subtab, setSubtab] = useState<'active'|'expiring'|'all'>('active');
   const [contracts, setContracts] = useState<Contract[]>([]);

@@ -95,7 +95,7 @@ export const Register: React.FC = () => {
   return (
     <div className="auth-container">
       <div className="auth-box auth-box-register">
-        <h1>Join Club Command</h1>
+        <h1>Join SquadHQ</h1>
         <h2>Create your operations account</h2>
 
         {allErrors.length > 0 && (

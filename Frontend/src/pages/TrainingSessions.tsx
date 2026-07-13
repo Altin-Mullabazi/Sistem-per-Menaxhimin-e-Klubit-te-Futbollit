@@ -203,7 +203,7 @@ const TrainingForm: React.FC<{
 };
 
 const TrainingSessions: React.FC = () => {
-  const { user } = useAuth();
+  const { isAdmin, isManager } = useAuth();
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
@@ -221,8 +221,8 @@ const TrainingSessions: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingSession, setEditingSession] = useState<TrainingSession | null>(null);
 
-  const canManage = user?.role === 'Admin' || user?.role === 'Manager';
-  const canDelete = user?.role === 'Admin';
+  const canManage = isAdmin || isManager;
+  const canDelete = isAdmin;
 
   const loadClubs = async () => {
     try {

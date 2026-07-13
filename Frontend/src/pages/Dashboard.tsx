@@ -69,7 +69,7 @@ const Dashboard: React.FC = () => {
       <div className="dashboard-header">
         <div>
           <span className="dashboard-eyebrow">Operations overview</span>
-          <h1>Welcome back, {user?.firstName || user?.username || 'team member'}</h1>
+          <h1>Welcome back</h1>
           <p>Monitor squad activity, match readiness and club operations from one workspace.</p>
         </div>
         <div className="dashboard-header-actions">

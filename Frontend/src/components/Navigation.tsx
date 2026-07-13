@@ -101,7 +101,7 @@ export const Navigation: React.FC = () => {
       <header className="mobile-app-bar">
         <button className="mobile-brand" onClick={() => navigate('/dashboard')}>
           <span className="brand-mark">FC</span>
-          <span>Club Command</span>
+          <span>SquadHQ</span>
         </button>
         <button
           className="mobile-menu-trigger"
@@ -123,10 +123,10 @@ export const Navigation: React.FC = () => {
 
       <aside className={`sidebar ${isCollapsed ? 'is-collapsed' : ''} ${isMobileOpen ? 'is-mobile-open' : ''}`}>
         <div className="sidebar-brand">
-          <button className="brand-button" onClick={() => navigate('/dashboard')} title="Club Command">
+          <button className="brand-button" onClick={() => navigate('/dashboard')} title="SquadHQ">
             <span className="brand-mark">FC</span>
             <span className="brand-copy">
-              <strong>Club Command</strong>
+              <strong>SquadHQ</strong>
               <small>Football operations</small>
             </span>
           </button>

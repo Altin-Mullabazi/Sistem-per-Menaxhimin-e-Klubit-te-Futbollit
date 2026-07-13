@@ -189,7 +189,8 @@ const Seasons: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingSeason, setEditingSeason] = useState<Season | null>(null);
 
-  const canManage = user?.role === 'Admin';
+  const { isAdmin } = useAuth();
+  const canManage = isAdmin;
 
   const loadSeasons = async (page = 1) => {
     setIsLoading(true);

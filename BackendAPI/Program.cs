@@ -84,14 +84,42 @@ builder.Services.AddAuthentication(options =>
     {
         OnAuthenticationFailed = context =>
         {
-            if (context.Exception is SecurityTokenExpiredException)
+            // Avoid writing to the response here — the response may have already started.
+            // Log the failure if a logger factory is available.
+            try
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                context.Response.ContentType = "application/json";
-                return context.Response.WriteAsJsonAsync(new { message = "Token expired" });
+                var loggerFactory = context.HttpContext.RequestServices.GetService(typeof(ILoggerFactory)) as ILoggerFactory;
+                loggerFactory?.CreateLogger("JwtBearer").LogError(context.Exception, "Authentication failed");
+            }
+            catch
+            {
+                // swallow logging errors
             }
 
             return Task.CompletedTask;
+        },
+        OnChallenge = async context =>
+        {
+            if (context.Response.HasStarted) return;
+
+            context.HandleResponse();
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.ContentType = "application/json";
+
+            var message = "Unauthorized";
+            if (!string.IsNullOrEmpty(context.Error) && context.Error.Equals("invalid_token", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrEmpty(context.ErrorDescription) && context.ErrorDescription.Contains("expired", StringComparison.OrdinalIgnoreCase))
+                {
+                    message = "Token expired";
+                }
+                else
+                {
+                    message = "Invalid token";
+                }
+            }
+
+            await context.Response.WriteAsJsonAsync(new { message });
         }
     };
 });

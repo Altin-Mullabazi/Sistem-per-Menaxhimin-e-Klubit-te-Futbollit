@@ -6,8 +6,8 @@ import { Transfer } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 
 const TransfersTab: React.FC = () => {
-  const { user, isAdmin } = useAuth();
-  const canManage = user?.role === 'Manager' || isAdmin;
+  const { isAdmin, isManager } = useAuth();
+  const canManage = isManager || isAdmin;
 
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [page, setPage] = useState(1);
@@ -100,7 +100,7 @@ const TransfersTab: React.FC = () => {
                   <td>{t.playerName}</td>
                   <td>{t.fromClubName || '-'}</td>
                   <td>{t.toClubName || '-'}</td>
-                  <td>{t.fee.toFixed(2)}</td>
+                  <td>{(typeof (t as any).fee === 'number' ? (t as any).fee : (typeof (t as any).transferFee === 'number' ? (t as any).transferFee : null)) !== null ? ((typeof (t as any).fee === 'number' ? (t as any).fee : (t as any).transferFee) as number).toFixed(2) : '-'}</td>
                   <td>{new Date(t.transferDate).toLocaleDateString()}</td>
                   <td>
                     <button className="btn btn-sm btn-edit" onClick={() => handleEdit(t)} disabled={!canManage}>Edit</button>

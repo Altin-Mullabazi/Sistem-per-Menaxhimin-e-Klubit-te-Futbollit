@@ -11,7 +11,7 @@ import MatchFilters from '../components/MatchFilters';
 import '../styles/Matches.css';
 
 const Matches: React.FC = () => {
-  const { user } = useAuth();
+  const { isAdmin, isManager, user } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
@@ -38,9 +38,9 @@ const Matches: React.FC = () => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
 
-  const canCreate = user?.role === 'Admin' || user?.role === 'Manager';
-  const canEdit = user?.role === 'Admin' || user?.role === 'Manager';
-  const canDelete = user?.role === 'Admin';
+  const canCreate = isAdmin || isManager;
+  const canEdit = isAdmin || isManager;
+  const canDelete = isAdmin;
 
   const loadMatches = async () => {
     setIsLoading(true);

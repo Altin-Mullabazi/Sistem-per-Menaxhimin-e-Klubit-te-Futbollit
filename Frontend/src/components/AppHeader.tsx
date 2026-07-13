@@ -24,10 +24,10 @@ const routeTitles: Record<string, { title: string; group: string }> = {
 export const AppHeader: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const { pathname } = useLocation();
-  const current = routeTitles[pathname] ?? { title: 'Club Command', group: 'Workspace' };
+  const current = routeTitles[pathname] ?? { title: 'SquadHQ', group: 'Workspace' };
 
   useEffect(() => {
-    document.title = `${current.title} | Club Command`;
+    document.title = `${current.title} | SquadHQ`;
   }, [current.title]);
 
   if (!isAuthenticated) return null;
@@ -36,7 +36,7 @@ export const AppHeader: React.FC = () => {
     <header className="app-context-header">
       <div>
         <div className="breadcrumbs" aria-label="Breadcrumb">
-          <span>Club Command</span>
+          <span>SquadHQ</span>
           <span aria-hidden="true">/</span>
           <span>{current.group}</span>
         </div>

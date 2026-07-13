@@ -25,7 +25,15 @@ export const transferService = {
 
   createTransfer: async (payload: CreateTransferDto) => {
     try {
-      const response = await apiClient.post('/transfers', payload);
+      const mapped = {
+        PlayerId: payload.playerId,
+        FromClubId: payload.fromClubId,
+        ToClubId: payload.toClubId,
+        TransferFee: payload.fee,
+        TransferDate: payload.transferDate,
+        Type: (payload as any).type ?? 1,
+      };
+      const response = await apiClient.post('/transfers', mapped);
       return response.data;
     } catch (error: any) {
       throw error.response?.data || { success: false, message: 'Failed to create transfer' };
@@ -34,7 +42,11 @@ export const transferService = {
 
   updateTransfer: async (id: number, payload: UpdateTransferDto) => {
     try {
-      const response = await apiClient.put(`/transfers/${id}`, payload);
+      const mapped = {
+        TransferFee: payload.fee,
+        Type: (payload as any).type ?? 1,
+      };
+      const response = await apiClient.put(`/transfers/${id}`, mapped);
       return response.data;
     } catch (error: any) {
       throw error.response?.data || { success: false, message: 'Failed to update transfer' };

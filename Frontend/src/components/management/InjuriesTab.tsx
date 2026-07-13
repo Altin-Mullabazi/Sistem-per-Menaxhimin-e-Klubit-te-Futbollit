@@ -6,8 +6,8 @@ import { Injury } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 
 const InjuriesTab: React.FC = () => {
-  const { user, isAdmin } = useAuth();
-  const canManage = user?.role === 'Manager' || isAdmin;
+  const { isAdmin, isManager } = useAuth();
+  const canManage = isManager || isAdmin;
 
   const [subtab, setSubtab] = useState<'active'|'all'>('active');
   const [injuries, setInjuries] = useState<Injury[]>([]);
