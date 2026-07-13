@@ -101,12 +101,28 @@ var allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get
 
 builder.Services.AddCors(options =>
 {
+    // Development: allow any localhost origin (5173, 4173, 127.0.0.1, etc.)
+    options.AddPolicy("DevCors", policy =>
+    {
+        policy.SetIsOriginAllowed(origin =>
+        {
+            if (string.IsNullOrWhiteSpace(origin))
+            {
+                return false;
+            }
+
+            var uri = new Uri(origin);
+            return uri.Host is "localhost" or "127.0.0.1";
+        })
+        .AllowAnyMethod()
+        .AllowAnyHeader();
+    });
+
     options.AddPolicy("AllowReactApp", policy =>
     {
         policy.WithOrigins(allowedOrigins)
             .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
+            .AllowAnyHeader();
     });
 });
 
@@ -178,8 +194,8 @@ builder.Services.AddLogging();
 
 var app = builder.Build();
 
-// Apply CORS
-app.UseCors("AllowReactApp");
+// Apply CORS (must be before auth)
+app.UseCors(app.Environment.IsDevelopment() ? "DevCors" : "AllowReactApp");
 app.UseRateLimiter();
 
 // Database migration on startup

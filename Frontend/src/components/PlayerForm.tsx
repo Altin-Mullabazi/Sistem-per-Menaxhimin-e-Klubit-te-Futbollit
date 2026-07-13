@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Player, CreatePlayerDto, UpdatePlayerDto } from '../types';
+import { Player, Club } from '../types';
 import { playerService } from '../services/playerService';
+import Modal from './Modal';
 import '../styles/Form.css';
 
 interface PlayerFormProps {
   player: Player | null;
   onClose: () => void;
   onSubmit: () => void;
+  clubs?: Club[];
 }
 
-const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit }) => {
+const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit, clubs = [] }) => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     age: '',
     position: '',
-    clubName: '',
+    clubId: '',
+    jerseyNumber: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +32,8 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit }) =>
         lastName: player.lastName,
         age: player.age.toString(),
         position: player.position,
-        clubName: player.clubName || '',
+        clubId: player.clubId?.toString() || '',
+        jerseyNumber: player.jerseyNumber?.toString() || '',
       });
     }
   }, [player]);
@@ -57,6 +61,15 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit }) =>
       setError('Position is required');
       return false;
     }
+    const jersey = parseInt(formData.jerseyNumber, 10);
+    if (isNaN(jersey) || jersey < 1 || jersey > 99) {
+      setError('Jersey number is required (1–99)');
+      return false;
+    }
+    if (clubs.length > 0 && !formData.clubId) {
+      setError('Please select a club');
+      return false;
+    }
     return true;
   };
 
@@ -70,24 +83,20 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit }) =>
 
     setIsLoading(true);
     try {
+      const jerseyNumber = parseInt(formData.jerseyNumber, 10);
+      const payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        age: parseInt(formData.age, 10),
+        position: formData.position,
+        clubId: formData.clubId ? parseInt(formData.clubId, 10) : undefined,
+        jerseyNumber,
+      };
+
       if (player) {
-        const updateData: UpdatePlayerDto = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          age: parseInt(formData.age),
-          position: formData.position,
-          clubName: formData.clubName || undefined,
-        };
-        await playerService.updatePlayer(player.id, updateData);
+        await playerService.updatePlayer(player.id, payload);
       } else {
-        const createData: CreatePlayerDto = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          age: parseInt(formData.age),
-          position: formData.position,
-          clubName: formData.clubName || undefined,
-        };
-        await playerService.createPlayer(createData);
+        await playerService.createPlayer(payload);
       }
       onSubmit();
     } catch (err: any) {
@@ -98,92 +107,112 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit }) =>
   };
 
   return (
-    <div className="form-overlay">
-      <div className="form-container">
-        <div className="form-header">
-          <h2>{player ? 'Edit Player' : 'Add New Player'}</h2>
-          <button className="close-btn" onClick={onClose} disabled={isLoading}>
-            ×
-          </button>
-        </div>
+    <Modal title={player ? 'Edit Player' : 'Create New Player'} onClose={onClose}>
+        <form onSubmit={handleSubmit} className="form">
+          {error && <div className="error-message">{error}</div>}
 
-        {error && <div className="error-message">{error}</div>}
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="firstName">First Name *</label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="Enter first name"
+                disabled={isLoading}
+                required
+              />
+            </div>
 
-        <form onSubmit={handleSubmit} className="player-form">
-          <div className="form-group">
-            <label htmlFor="firstName">First Name *</label>
-            <input
-              id="firstName"
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              placeholder="Enter first name"
-              required
-              disabled={isLoading}
-            />
+            <div className="form-group">
+              <label htmlFor="lastName">Last Name *</label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Enter last name"
+                disabled={isLoading}
+                required
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="lastName">Last Name *</label>
-            <input
-              id="lastName"
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              placeholder="Enter last name"
-              required
-              disabled={isLoading}
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="age">Age *</label>
+              <input
+                type="number"
+                id="age"
+                name="age"
+                value={formData.age}
+                onChange={handleChange}
+                min="16"
+                max="45"
+                disabled={isLoading}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="position">Position *</label>
+              <select
+                id="position"
+                name="position"
+                value={formData.position}
+                onChange={handleChange}
+                disabled={isLoading}
+                required
+              >
+                <option value="">Select position</option>
+                {positions.map((pos) => (
+                  <option key={pos} value={pos}>
+                    {pos}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="age">Age *</label>
-            <input
-              id="age"
-              type="number"
-              name="age"
-              value={formData.age}
-              onChange={handleChange}
-              placeholder="Enter age (16-45)"
-              min="16"
-              max="45"
-              required
-              disabled={isLoading}
-            />
-          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="jerseyNumber">Jersey Number *</label>
+              <input
+                type="number"
+                id="jerseyNumber"
+                name="jerseyNumber"
+                value={formData.jerseyNumber}
+                onChange={handleChange}
+                placeholder="Enter jersey number"
+                min="1"
+                max="99"
+                disabled={isLoading}
+                required
+              />
+            </div>
 
-          <div className="form-group">
-            <label htmlFor="position">Position *</label>
-            <select
-              id="position"
-              name="position"
-              value={formData.position}
-              onChange={handleChange}
-              required
-              disabled={isLoading}
-            >
-              <option value="">Select a position</option>
-              {positions.map((pos) => (
-                <option key={pos} value={pos}>
-                  {pos}
+            <div className="form-group">
+              <label htmlFor="clubId">Club{clubs.length > 0 ? ' *' : ''}</label>
+              <select
+                id="clubId"
+                name="clubId"
+                value={formData.clubId}
+                onChange={handleChange}
+                disabled={isLoading || clubs.length === 0}
+              >
+                <option value="">
+                  {clubs.length === 0 ? 'No clubs — create one under Clubs first' : 'Select club'}
                 </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="clubName">Club Name</label>
-            <input
-              id="clubName"
-              type="text"
-              name="clubName"
-              value={formData.clubName}
-              onChange={handleChange}
-              placeholder="Enter club name (optional)"
-              disabled={isLoading}
-            />
+                {clubs.map((club) => (
+                  <option key={club.id} value={club.id}>
+                    {club.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="form-actions">
@@ -195,8 +224,7 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onClose, onSubmit }) =>
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };
 

@@ -4,13 +4,22 @@ import { LoginRequest, RegisterRequest, AuthResponse, RegisterResponse } from '.
 export const authService = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
     try {
+      // Clear stale tokens so a failed login is not hijacked by the refresh interceptor
+      clearAuthTokens();
       const response = await apiClient.post('/auth/login', credentials);
       if (response.data.success) {
         setAuthTokens(response.data.accessToken, response.data.refreshToken);
       }
       return response.data;
     } catch (error: any) {
-      throw error.response?.data || { success: false, message: 'Login failed' };
+      if (error.code === 'ERR_NETWORK') {
+        throw {
+          success: false,
+          message: 'Cannot reach API. Start BackendAPI with: dotnet run (http://localhost:5000)',
+        };
+      }
+      const apiError = error.response?.data;
+      throw apiError || { success: false, message: error.message || 'Login failed' };
     }
   },
 

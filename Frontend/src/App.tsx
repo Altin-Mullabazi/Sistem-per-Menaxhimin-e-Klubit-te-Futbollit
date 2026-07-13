@@ -3,8 +3,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Navigation } from './components/Navigation';
+import { AppHeader } from './components/AppHeader';
 import { Login } from './pages/Login';
+import { Register } from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Clubs from './pages/Clubs';
 import Players from './pages/Players';
 import Matches from './pages/Matches';
 import PlayerStatsPage from './pages/PlayerStatsPage';
@@ -13,6 +16,11 @@ import TrainingSessions from './pages/TrainingSessions';
 import StaffPage from './pages/StaffPage';
 import UsersPage from './pages/UsersPage';
 import SponsorsSeasons from './pages/SponsorsSeasons';
+import Transfers from './pages/Transfers';
+import Contracts from './pages/Contracts';
+import Injuries from './pages/Injuries';
+import Stadiums from './pages/Stadiums';
+import Profile from './pages/Profile';
 import Management from './pages/Management';
 import './styles/App.css';
 
@@ -23,14 +31,25 @@ function App() {
         <div className="app">
           <Navigation />
           <main className="main-content">
+            <AppHeader />
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
               <Route
                 path="/dashboard"
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/clubs"
+                element={
+                  <ProtectedRoute>
+                    <Clubs />
                   </ProtectedRoute>
                 }
               />
@@ -63,6 +82,42 @@ function App() {
               />
 
               <Route
+                path="/transfers"
+                element={
+                  <ProtectedRoute>
+                    <Transfers />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/contracts"
+                element={
+                  <ProtectedRoute>
+                    <Contracts />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/injuries"
+                element={
+                  <ProtectedRoute>
+                    <Injuries />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/stadiums"
+                element={
+                  <ProtectedRoute>
+                    <Stadiums />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
                 path="/users"
                 element={
                   <ProtectedRoute>
@@ -76,6 +131,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <SponsorsSeasons />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
                   </ProtectedRoute>
                 }
               />
@@ -103,6 +167,11 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <StaffPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
                 path="/management"
                 element={
                   <ProtectedRoute>

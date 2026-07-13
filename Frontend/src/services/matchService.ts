@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import apiClient from './apiClient';
 import { Match, MatchDetail, CreateMatchDto, UpdateMatchDto, ApiResponse, Pagination } from '../types';
 
 interface MatchListResponse {
@@ -103,7 +103,11 @@ export const matchService = {
       }
       throw new Error(response.data.message);
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || error.message || 'Failed to create match');
+      const validationErrors = error.response?.data?.errors;
+      const validationMessage = validationErrors
+        ? Object.values(validationErrors).flat().join(' ')
+        : null;
+      throw new Error(validationMessage || error.response?.data?.message || error.message || 'Failed to create match');
     }
   },
 

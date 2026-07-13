@@ -187,7 +187,8 @@ namespace FootballClubAPI.Data
                 .HasOne(club => club.User)
                 .WithMany()
                 .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Stadium Configuration
             modelBuilder.Entity<Stadium>()

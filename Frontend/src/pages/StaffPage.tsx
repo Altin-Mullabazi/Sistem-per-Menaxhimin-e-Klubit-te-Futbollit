@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { Staff } from '../types';
 import { staffService } from '../services/staffService';
 import StaffList from '../components/StaffList';
@@ -7,7 +6,6 @@ import StaffForm from '../components/StaffForm';
 import '../styles/Players.css';
 
 const StaffPage: React.FC = () => {
-  const { user } = useAuth();
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +44,6 @@ const StaffPage: React.FC = () => {
     <div className="players-container">
       <div className="players-header">
         <h1>Staff Management</h1>
-        <div className="header-info"><p>Logged in as: <strong>{user?.username}</strong></p></div>
       </div>
 
       {error && <div className="error-message">{error}</div>}

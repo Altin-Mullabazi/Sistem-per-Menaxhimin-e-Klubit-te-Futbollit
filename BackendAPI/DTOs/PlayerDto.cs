@@ -74,7 +74,6 @@ namespace FootballClubAPI.DTOs
 
         public decimal? MarketValue { get; set; }
 
-        [Required]
         public int? ClubId { get; set; }
     }
 
@@ -109,7 +108,6 @@ namespace FootballClubAPI.DTOs
 
         public decimal? MarketValue { get; set; }
 
-        [Required]
         public int? ClubId { get; set; }
     }
 

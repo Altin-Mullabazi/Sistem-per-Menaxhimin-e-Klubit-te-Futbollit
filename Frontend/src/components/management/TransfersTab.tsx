@@ -6,7 +6,7 @@ import { Transfer } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 
 const TransfersTab: React.FC = () => {
-  const { isAuthenticated, user, isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const canManage = user?.role === 'Manager' || isAdmin;
 
   const [transfers, setTransfers] = useState<Transfer[]>([]);

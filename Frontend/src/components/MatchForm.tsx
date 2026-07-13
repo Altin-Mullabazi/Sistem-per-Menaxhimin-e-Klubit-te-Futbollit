@@ -124,7 +124,7 @@ const MatchForm: React.FC<MatchFormProps> = ({
           awayClubId: parseInt(formData.awayClubId),
           stadiumId: parseInt(formData.stadiumId),
           matchDate: formData.matchDate,
-          time: formData.time || undefined,
+          time: formData.time ? `${formData.time}:00` : undefined,
           seasonId: parseInt(formData.seasonId),
           competitionType: formData.competitionType || undefined,
         };
@@ -156,7 +156,7 @@ const MatchForm: React.FC<MatchFormProps> = ({
                 name="homeClubId"
                 value={formData.homeClubId}
                 onChange={handleChange}
-                disabled={match !== undefined}
+                disabled={Boolean(match)}
                 required
               >
                 <option value="">Select home club</option>
@@ -175,7 +175,7 @@ const MatchForm: React.FC<MatchFormProps> = ({
                 name="awayClubId"
                 value={formData.awayClubId}
                 onChange={handleChange}
-                disabled={match !== undefined}
+                disabled={Boolean(match)}
                 required
               >
                 <option value="">Select away club</option>
@@ -197,7 +197,7 @@ const MatchForm: React.FC<MatchFormProps> = ({
                 name="matchDate"
                 value={formData.matchDate}
                 onChange={handleChange}
-                disabled={match !== undefined}
+                disabled={Boolean(match)}
                 required
               />
             </div>
@@ -210,7 +210,7 @@ const MatchForm: React.FC<MatchFormProps> = ({
                 name="time"
                 value={formData.time}
                 onChange={handleChange}
-                disabled={match !== undefined}
+                disabled={Boolean(match)}
               />
             </div>
           </div>
@@ -223,7 +223,7 @@ const MatchForm: React.FC<MatchFormProps> = ({
                 name="stadiumId"
                 value={formData.stadiumId}
                 onChange={handleChange}
-                disabled={match !== undefined}
+                disabled={Boolean(match)}
                 required
               >
                 <option value="">Select stadium</option>
@@ -242,7 +242,7 @@ const MatchForm: React.FC<MatchFormProps> = ({
                 name="seasonId"
                 value={formData.seasonId}
                 onChange={handleChange}
-                disabled={match !== undefined}
+                disabled={Boolean(match)}
                 required
               >
                 <option value="">Select season</option>
@@ -265,7 +265,7 @@ const MatchForm: React.FC<MatchFormProps> = ({
                 value={formData.competitionType}
                 onChange={handleChange}
                 placeholder="e.g., League, Cup, Friendly"
-                disabled={match !== undefined}
+                disabled={Boolean(match)}
               />
             </div>
           </div>

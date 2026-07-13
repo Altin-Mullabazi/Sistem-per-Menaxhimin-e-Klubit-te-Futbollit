@@ -44,7 +44,7 @@ const StaffForm: React.FC<Props> = ({ staff, onClose, onSubmit }) => {
     const load = async () => {
       try {
         const c = await clubService.getClubs(1, 200);
-        setClubs(c);
+        setClubs(c.data);
 
         // Load users (admin only endpoint) - try to fetch a page of users
         const resp = await apiClient.get('/users', { params: { page: 1, pageSize: 200 } });
